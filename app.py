@@ -395,13 +395,36 @@ elif page == "🐝 Pollination Calculator":
         return None
 
     def parse_frost_date(frost_str, year):
-        for fmt in ["%m/%d", "%Y/%m/%d", "%Y-%d-%b", "%m/%d/%Y"]:
+        # Clean up any accidental leading/trailing spaces or quotes
+        frost_str = str(frost_str).strip().replace('"', '').replace("'", "")
+        
+        # List of candidate formats to try parsing
+        # %m/%d for "4/23", %m-%d for "04-23", %b-%d for "Apr-23" or "23-Apr" etc.
+        for fmt in ["%m/%d", "%m-%d", "%d-%b", "%b-%d", "%Y/%m/%d", "%m/%d/%Y", "%Y-%m-%d"]:
             try:
-                # Strip year matching blocks if parsed string contains it natively
-                if "/" in frost_str and len(frost_str.split("/")) == 3:
-                    return datetime.strptime(frost_str, "%m/%d/%Y").date()
-                return datetime.strptime(f"{year}/{frost_str}", "%Y/%m/%d").date()
-            except ValueError: continue
+                # If the string already looks like a full date with a 4-digit year, parse it directly
+                if len(frost_str) >= 8 and ("/" in frost_str or "-" in frost_str):
+                    # Check if it has a 4-digit year in it anywhere
+                    parts = frost_str.replace("-", "/").split("/")
+                    if any(len(p) == 4 for p in parts):
+                        if parts[0].isdigit() and len(parts[0]) == 4:
+                            return datetime.strptime(frost_str, "%Y/%m/%d" if "/" in frost_str else "%Y-%m-%d").date()
+                        else:
+                            return datetime.strptime(frost_str, "%m/%d/%Y").date()
+
+                # Otherwise, append the current pollination year to the MM/DD string
+                # We normalize delimiters to '/' to make matching cleaner
+                normalized_str = frost_str.replace("-", "/")
+                normalized_fmt = fmt.replace("-", "/")
+                
+                # If the format doesn't have a year component, add it
+                if "%Y" not in normalized_fmt:
+                    return datetime.strptime(f"{year}/{normalized_str}", f"%Y/{normalized_fmt}").date()
+                else:
+                    return datetime.strptime(normalized_str, normalized_fmt).date()
+            except ValueError:
+                continue
+                
         raise ValueError(f"Unsupported Frost Date Format: {frost_str}")
 
     def score_pollination_date(poll_date, f_date):
