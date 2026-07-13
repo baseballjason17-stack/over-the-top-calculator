@@ -29,8 +29,12 @@ def geocode_zip(zip_str):
 # SIDEBAR NAVIGATION
 # ==============================================================================
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to tool:", ["🎃 Weight Calculator (OTT)", "🌤️ Weather & Risk Dashboard", "📅 16-Day Weather Outlook"])
-
+page = st.sidebar.radio("Go to tool:", [
+    "🎃 Weight Calculator (OTT)", 
+    "🌤️ Weather & Risk Dashboard", 
+    "📅 16-Day Weather Outlook",
+    "🐝 Pollination Calculator"
+])
 
 # ==============================================================================
 # TOOL 1: OTT WEIGHT CALCULATOR
@@ -333,3 +337,200 @@ elif page == "📅 16-Day Weather Outlook":
                         st.write(f"• Avg Cloud Cover: {info.get('avg_cloud_cover')}%")
         else:
             st.error("Invalid ZIP code. Please re-verify.")
+
+# ==============================================================================
+# TOOL 4: POLLINATION CALCULATOR & WEATHER AUDITOR
+# ==============================================================================
+elif page == "🐝 Pollination Calculator":
+    st.title("🐝 Pollination Success & Weather Auditor")
+    st.write("Track flower protection methods, regional seasonal windows, and audit atmospheric data during pollination.")
+
+    import math
+    import csv
+
+    # Sidebar parameters for pollination tool
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Pollination Inputs")
+    poll_zip = st.sidebar.text_input("Enter 5-Digit ZIP Code:", value="11951", key="poll_zip").strip()
+
+    # Core UI Layout Inputs
+    col_in1, col_in2 = st.columns(2)
+    with col_in1:
+        p_date = st.date_input("Pollination Date:", datetime.today().date())
+        p_time = st.time_input("Estimated Pollination Time (Local):", datetime.now().time())
+        male_count = st.number_input("Number of male flowers used:", min_value=1, max_value=20, value=3)
+    with col_in2:
+        flower_covered = st.checkbox("Female flower was covered/bagged before and after pollination?", value=True)
+        hand_pollinated = st.checkbox("Was it hand pollinated?", value=True)
+
+    pollination_info = {
+        "date": p_date, "time": p_time, "male_flowers_used": male_count,
+        "flower_covered_before_after": flower_covered, "hand_pollinated": hand_pollinated
+    }
+
+    # Data Calculation Logic
+    LAT_STEP, LON_STEP = 0.5, 1.0
+    def snap_down(val, step): return math.floor(val / step) * step
+
+    @st.cache_data
+    def load_frost_regions(filename="average_last_frost_grid_filled.csv"):
+        regions = []
+        try:
+            with open(filename, newline="", encoding="utf-8-sig") as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    regions.append({
+                        "region_name": row["region_name"].strip(),
+                        "lat_min": float(row["lat_min"]), "lat_max": float(row["lat_max"]),
+                        "lon_min": float(row["lon_min"]), "lon_max": float(row["lon_max"]),
+                        "avg_last_frost": row["avg_last_frost"].strip()
+                    })
+            return regions
+        except FileNotFoundError:
+            return None
+
+    def find_frost_region(lat, lon, region_list):
+        for r in region_list:
+            if r["lat_min"] <= lat < r["lat_max"] and r["lon_min"] <= lon < r["lon_max"]: return r
+        return None
+
+    def parse_frost_date(frost_str, year):
+        for fmt in ["%m/%d", "%Y/%m/%d", "%Y-%d-%b", "%m/%d/%Y"]:
+            try:
+                # Strip year matching blocks if parsed string contains it natively
+                if "/" in frost_str and len(frost_str.split("/")) == 3:
+                    return datetime.strptime(frost_str, "%m/%d/%Y").date()
+                return datetime.strptime(f"{year}/{frost_str}", "%Y/%m/%d").date()
+            except ValueError: continue
+        raise ValueError(f"Unsupported Frost Date Format: {frost_str}")
+
+    def score_pollination_date(poll_date, f_date):
+        days_after_frost = (poll_date - f_date).days
+        if 45 <= days_after_frost <= 60: return 30, f"Ideal Timing ({days_after_frost} days after frost)"
+        elif 40 <= days_after_frost < 45 or 61 <= days_after_frost <= 67: return 24, f"Good Timing ({days_after_frost} days after frost)"
+        elif 35 <= days_after_frost < 40 or 68 <= days_after_frost <= 75: return 18, f"Acceptable Timing ({days_after_frost} days after frost)"
+        elif 30 <= days_after_frost < 35 or 76 <= days_after_frost <= 85: return 10, f"Suboptimal Timing ({days_after_frost} days after frost)"
+        return 4, f"Poor season timing ({days_after_frost} days after frost)"
+
+    def score_pollination_time(p_t):
+        tot_min = p_t.hour * 60 + p_t.minute
+        if 5 * 60 <= tot_min <= 8 * 60: return 20, "Ideal Early Morning Window"
+        elif 8 * 60 < tot_min <= 10 * 60: return 16, "Good Morning Window"
+        elif 10 * 60 < tot_min <= 12 * 60: return 10, "Poor Midday Window"
+        return 5, "Suboptimal Windows (High Heat/Pollen Degrade Risks)"
+
+    def score_male_flower_count(m_c):
+        if m_c >= 4: return 20, "Strong Genetic Load (>=4 Male Flowers)"
+        elif m_c == 3: return 16, "Good Genetic Load (3 Male Flowers)"
+        elif m_c == 2: return 12, "Moderate Genetic Load (2 Male Flowers)"
+        return 8, "Minimum Genetic Load (1 Male Flower)"
+
+    def score_hand_pollinated(h_p): return (15, "Hand Pollinated") if h_p else (5, "Natural/Insect Pollinated")
+    def score_flower_covered(f_c): return (15, "Protected (Covered Before & After)") if f_c else (5, "Exposed to Competitors/Weather")
+
+    def score_pollination_weather(temp_f, wind_mph, rain_chance, humidity):
+        score, reasons = 100, []
+        if temp_f >= 90: score -= 25; reasons.append("❌ Too Hot: Pollen tubes degrade over 90°F.")
+        elif temp_f >= 75: score -= 10; reasons.append("⚠️ Warm: Higher sweat risk inside bags.")
+        elif temp_f <= 55: score -= 25; reasons.append("❌ Too Cold: Bee activity stops, flower metabolism freezes.")
+        elif temp_f <= 65: score -= 15; reasons.append("⚠️ Cool: Sluggish pollen growth development rates.")
+        else: reasons.append("🟢 Ideal temperature window.")
+
+        if wind_mph >= 20: score -= 20; reasons.append("❌ Severe Wind: High loss risk or physical blossom scarring.")
+        elif wind_mph >= 11: score -= 10; reasons.append("⚠️ Breezy: Increases physical tearing risk to protective bagging structures.")
+        else: reasons.append("🟢 Ideal gentle wind velocity.")
+
+        if rain_chance >= 60: score -= 20; reasons.append("❌ Rain Warning: Moisture destroys pollen grains instantly on contact.")
+        elif rain_chance >= 20: score -= 5; reasons.append("⚠️ Low Risk: Keep an eye on rain clouds.")
+        else: reasons.append("🟢 Low precipitation risk.")
+
+        if humidity >= 80 or humidity < 50: score -= 20; reasons.append("⚠️ Humidity Issue: Extreme values alter pollen consistency.")
+        else: reasons.append("🟢 Good pollination humidity profiles.")
+        return max(score, 0), reasons
+
+    def get_closest_pollination_hour(hourly, poll_date, poll_time):
+        target_dt = datetime.combine(poll_date, poll_time)
+        forecast_times = [datetime.fromisoformat(t.replace('Z', '')) for t in hourly["time"]]
+        if target_dt < min(forecast_times) or target_dt > max(forecast_times): return None
+        best_index = min(range(len(forecast_times)), key=lambda i: abs((forecast_times[i] - target_dt).total_seconds()))
+        return {
+            "time": hourly["time"][best_index], "temperature_2m": hourly["temperature_2m"][best_index],
+            "relative_humidity_2m": hourly["relative_humidity_2m"][best_index], "precipitation_probability": hourly["precipitation_probability"][best_index],
+            "wind_speed_10m": hourly["wind_speed_10m"][best_index]
+        }
+
+    # Evaluation Execution Pipeline
+    if poll_zip:
+        location = geocode_zip(poll_zip)
+        regions_list = load_frost_regions()
+        
+        if regions_list is None:
+            st.error("⚠️ `average_last_frost_grid_filled.csv` file not found in your repository folder. Please upload it to GitHub.")
+        elif location:
+            match = find_frost_region(location["latitude"], location["longitude"], regions_list)
+            
+            if match:
+                frost_date = parse_frost_date(match["avg_last_frost"], pollination_info["date"].year)
+                
+                # Execute Core Calculations
+                d_score, d_reason = score_pollination_date(pollination_info["date"], frost_date)
+                t_score, t_reason = score_pollination_time(pollination_info["time"])
+                m_score, m_reason = score_male_flower_count(pollination_info["male_flowers_used"])
+                h_score, h_reason = score_hand_pollinated(pollination_info["hand_pollinated"])
+                c_score, c_reason = score_flower_covered(pollination_info["flower_covered_before_after"])
+                
+                total_procedural_score = d_score + t_score + m_score + h_score + c_score
+                
+                def get_pollination_label(s):
+                    if s >= 95: return "🏆 Perfect!"
+                    elif s >= 85: return "💎 Elite"
+                    elif s >= 75: return "🥇 Strong"
+                    elif s >= 60: return "🥈 Average"
+                    elif s >= 40: return "🥉 Weak"
+                    return "⚠️ Very Poor"
+
+                st.markdown("---")
+                st.subheader(f"📊 Procedural Execution Score: **{total_procedural_score}/100** ({get_pollination_label(total_procedural_score)})")
+                
+                # Render Breakdown metrics visually using metric cards
+                col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
+                col_m1.metric("Date Score", f"{d_score} pts", help=d_reason)
+                col_m2.metric("Time Window", f"{t_score} pts", help=t_reason)
+                col_m3.metric("Genetic Load", f"{m_score} pts", help=m_reason)
+                col_m4.metric("Technique", f"{h_score} pts", help=h_reason)
+                col_m5.metric("Protection", f"{c_score} pts", help=c_reason)
+
+                # Execute Weather Auditor Section
+                st.markdown("---")
+                st.subheader("🌦️ Live Atmospheric Audit")
+                
+                url = "https://api.open-meteo.com/v1/forecast"
+                params = {
+                    "latitude": location["latitude"], "longitude": location["longitude"],
+                    "hourly": "temperature_2m,relative_humidity_2m,precipitation_probability,wind_speed_10m",
+                    "temperature_unit": "fahrenheit", "wind_speed_unit": "mph", "timezone": "auto", "forecast_days": 7
+                }
+                weather_res = requests.get(url, params=params, timeout=10).json()
+                
+                poll_hour = get_closest_pollination_hour(weather_res["hourly"], pollination_info["date"], pollination_info["time"])
+                
+                if poll_hour is None:
+                    st.info("ℹ️ Weather Auditing can only be run for dates falling within the active 7-day forecast window.")
+                else:
+                    w_score, w_reasons = score_pollination_weather(
+                        poll_hour["temperature_2m"], poll_hour["wind_speed_10m"],
+                        poll_hour["precipitation_probability"], poll_hour["relative_humidity_2m"]
+                    )
+                    
+                    col_w1, col_w2 = st.columns([1, 2])
+                    with col_w1:
+                        st.metric("Weather Match Score", f"{w_score}/100")
+                        st.caption(f"Closest Forecast Slot: `{poll_hour['time'].split('T')[1]}`")
+                    with col_w2:
+                        st.write("**Patch Condition Audit Logs:**")
+                        for reason in w_reasons:
+                            st.write(f"- {reason}")
+            else:
+                st.warning("No historical frost zone matched your exact coordinates inside the database dataset.")
+        else:
+            st.error("Invalid ZIP profile entry configuration.")
