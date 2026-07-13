@@ -30,6 +30,7 @@ def geocode_zip(zip_str):
 # ==============================================================================
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to tool:", [
+    "Home",
     "🎃 Weight Calculator (OTT)", 
     "🌤️ Weather & Risk Dashboard", 
     "📅 16-Day Weather Outlook",
@@ -53,6 +54,16 @@ st.sidebar.markdown(
     """,
     unsafe_allow_html=True
 )
+
+# ==============================================================================
+# Home
+# ==============================================================================
+if page == "Home":
+    st.title("Home")
+    st.write("Welcome to Meuschke Farms Pumpkin Grwoing Dashboard")
+
+
+
 
 # ==============================================================================
 # TOOL 1: OTT WEIGHT CALCULATOR
