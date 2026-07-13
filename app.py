@@ -33,7 +33,8 @@ page = st.sidebar.radio("Go to tool:", [
     "🎃 Weight Calculator (OTT)", 
     "🌤️ Weather & Risk Dashboard", 
     "📅 16-Day Weather Outlook",
-    "🐝 Pollination Calculator"
+    "🐝 Pollination Calculator",
+    "🌱 Cell Division Optimizer"
 ])
 
 # ==============================================================================
@@ -557,3 +558,120 @@ elif page == "🐝 Pollination Calculator":
                 st.warning("No historical frost zone matched your exact coordinates inside the database dataset.")
         else:
             st.error("Invalid ZIP profile entry configuration.")
+
+# ==============================================================================
+# TOOL 5: CELL DIVISION WINDOW OPTIMIZER
+# ==============================================================================
+elif page == "🌱 Cell Division Optimizer":
+    st.title("🌱 Cell Division Window Optimizer")
+    st.write("Monitor the critical 10-day post-pollination cellular growth phase to maximize ultimate weight potential.")
+
+    # Sidebar layout for parameters
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Cell Division Inputs")
+    cell_zip = st.sidebar.text_input("Enter 5-Digit ZIP Code:", value="11951", key="cell_zip").strip()
+    
+    col_c1, col_c2 = st.columns(2)
+    with col_c1:
+        p_date_cell = st.date_input("Pollination Date Reference:", datetime.today().date(), key="cell_p_date")
+    with col_c2:
+        days_window = st.slider("Evaluation Window (Days):", min_value=5, max_value=14, value=10)
+
+    # Core Calculation Helpers
+    def score_cell_division_day(day_max, day_min, rain_total, avg_humidity=None):
+        score, reasons = 100, []
+        
+        if day_max > 92: score -= 25; reasons.append("❌ Excessive Daytime Heat (Restricts division)")
+        elif day_max > 86: score -= 10; reasons.append("⚠️ Warm Daytime Temperatures")
+        elif day_max < 65: score -= 15; reasons.append("⚠️ Cool Daytime Temperatures (Slows metabolism)")
+        else: reasons.append("🟢 Good Daytime Temperatures")
+
+        if day_min < 48: score -= 25; reasons.append("❌ Cold Nighttime Lows (Stops plant growth)")
+        elif day_min < 55: score -= 10; reasons.append("⚠️ Cool Nighttime Temperatures")
+        elif day_min > 72: score -= 8; reasons.append("⚠️ Very Warm Nights (High respiration load)")
+        else: reasons.append("🟢 Good Nighttime Temperatures")
+
+        if rain_total >= 1.00: score -= 20; reasons.append("❌ Heavy Rainfall (Saturated patch risks)")
+        elif rain_total >= 0.50: score -= 10; reasons.append("⚠️ Moderate Rainfall")
+        else: reasons.append("🟢 Safe moisture levels")
+
+        if avg_humidity is not None:
+            if avg_humidity >= 90: score -= 10; reasons.append("⚠️ High Humidity (Disease risk)")
+            elif avg_humidity < 40: score -= 5; reasons.append("⚠️ Low Humidity Stress")
+            
+        return max(score, 0), reasons
+
+    # Shared weather summarizer
+    def summarize_hourly_cell(hourly):
+        grouped = defaultdict(lambda: {"humidity": []})
+        for t, h in zip(hourly["time"], hourly["relative_humidity_2m"]):
+            day = t.split("T")[0]
+            grouped[day]["humidity"].append(h)
+        return {day: {"avg_humidity": round(sum(v["humidity"]) / len(v["humidity"]), 1)} for day, v in grouped.items()}
+
+    if cell_zip:
+        location = geocode_zip(cell_zip)
+        if location:
+            # Fetch a 14-day window forecast so we have enough data buffer
+            url = "https://api.open-meteo.com/v1/forecast"
+            params = {
+                "latitude": location["latitude"], "longitude": location["longitude"],
+                "hourly": "relative_humidity_2m",
+                "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum",
+                "temperature_unit": "fahrenheit", "precipitation_unit": "inch", "timezone": "auto", "forecast_days": 14
+            }
+            raw_res = requests.get(url, params=params, timeout=10).json()
+            hourly_sum = summarize_hourly_cell(raw_res["hourly"])
+            daily = raw_res["daily"]
+
+            daily_results = []
+            for day_str, tmax, tmin, rain in zip(daily["time"], daily["temperature_2m_max"], daily["temperature_2m_min"], daily["precipitation_sum"]):
+                day_date = datetime.strptime(day_str, "%Y-%m-%d").date()
+                days_from_poll = (day_date - p_date_cell).days
+
+                if 1 <= days_from_poll <= days_window:
+                    extra = hourly_sum.get(day_str, {})
+                    h_avg = extra.get("avg_humidity")
+                    score, reasons = score_cell_division_day(tmax, tmin, rain, avg_humidity=h_avg)
+                    
+                    daily_results.append({
+                        "date": day_str, "days_from_pollination": days_from_poll,
+                        "score": score, "max_temp": tmax, "min_temp": tmin,
+                        "rain_total": rain, "avg_humidity": h_avg, "reasons": reasons
+                    })
+
+            if not daily_results:
+                st.info("ℹ️ No forecast days line up with your selection. Make sure the Pollination Date matches the upcoming forecast window!")
+            else:
+                avg_window_score = round(sum(d["score"] for d in daily_results) / len(daily_results), 1)
+                
+                def get_cell_division_label(s):
+                    if s >= 95: return "🏆 Perfect"
+                    elif s >= 85: return "💎 Elite"
+                    elif s >= 75: return "🥇 Strong"
+                    elif s >= 60: return "🥈 Average"
+                    return "⚠️ Suboptimal"
+
+                st.markdown("---")
+                st.subheader(f"📊 Overall Window Score: **{avg_window_score}/100** ({get_cell_division_label(avg_window_score)})")
+                st.caption(f"Averages tracked over **{len(daily_results)} active growth days** inside the cell-splitting cycle.")
+
+                # Render Interactive Daily Timeline
+                st.write("**🗓️ Cellular Growth Timeline:**")
+                for day in daily_results:
+                    dt = datetime.strptime(day["date"], "%Y-%m-%d")
+                    readable_date = dt.strftime("%A, %b %d")
+                    
+                    with st.expander(f"🌱 Day {day['days_from_pollination']} | {readable_date} | Day Score: **{day['score']}/100**"):
+                        col_fa, col_fb = st.columns(2)
+                        with col_fa:
+                            st.write(f"• **High Temp:** {day['max_temp']}°F")
+                            st.write(f"• **Low Temp:** {day['min_temp']}°F")
+                            st.write(f"• **Total Rain:** {day['rain_total']} in")
+                            if day['avg_humidity']: st.write(f"• **Avg Humidity:** {day['avg_humidity']}%")
+                        with col_fb:
+                            st.write("**Cell Division Stress Factors:**")
+                            for r in day["reasons"]:
+                                st.write(f"- {r}")
+        else:
+            st.error("Invalid ZIP code selection.")
