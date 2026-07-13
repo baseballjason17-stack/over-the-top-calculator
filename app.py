@@ -35,8 +35,24 @@ page = st.sidebar.radio("Go to tool:", [
     "📅 16-Day Weather Outlook",
     "🐝 Pollination Calculator",
     "🌱 Cell Division Optimizer"
-    "\n\n\n\n\n\n\n\n\n\n Disclaimer: This dashboard is designed to provide environmental data and mathematical estimations for educational purposes. Patch management decisions are at the sole discretion of the grower."
 ])
+
+
+# ==============================================================================
+# DISCLAIMER: SIDE BAR
+# ==============================================================================
+
+st.sidebar.markdown("---")
+st.sidebar.markdown(
+    """
+    <div style="font-size: 0.75rem; color: #888888; line-height: 1.2; text-align: justify;">
+        <strong> DISCLAIMER:</strong><br>
+        This dashboard is designed to provide agricultural estimations and environmental analysis for informational purposes only.
+        Patch maanagement, watering, and chemical application descisions are made at the sole discretion and risk of the grower.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # ==============================================================================
 # TOOL 1: OTT WEIGHT CALCULATOR
