@@ -1,2 +1,9 @@
 # over-the-top-calculator
-OTT pumpkin calculator for potential website.
+Useful Calculators and Tools for Growing Giant Pumpkins!
+
+Tools and Calculators:
+OTT Weight Calculator
+Weather & Powdery Mildew Risk Calculator
+16-Day Weather Outlook
+Pollination Calculator
+Cell Division Optimizer
