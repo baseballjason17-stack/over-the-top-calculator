@@ -35,6 +35,7 @@ page = st.sidebar.radio("Go to tool:", [
     "📅 16-Day Weather Outlook",
     "🐝 Pollination Calculator",
     "🌱 Cell Division Optimizer"
+    "\n\n\n\n\n\n\n\n\n\n Disclaimer: This dashboard is designed to provide environmental data and mathematical estimations for educational purposes. Patch management decisions are at the sole discretion of the grower."
 ])
 
 # ==============================================================================
