@@ -1,0 +1,17 @@
+region_name,lat_min,lat_max,lon_min,lon_max,avg_last_frost
+NYC/Hudson Co.,40.5,41,-74.5,-74,13-Apr
+Western LI,40.5,41,-74,-73.5,20-Apr
+Central LI,40.5,41,-73.5,-73,28-Apr
+Eastern LI,40.5,41,-73,-72.5,23-Apr
+Far Eastern LI (Forks),40.5,41,-72.5,-72,23-Apr
+Eastern LI,41,41.5,-72.5,-72,23-Apr
+Lower Hudson Valley (Westchester / Putnam),41,41.5,-74,-73.5,23-Apr
+Western CT (Fairfield County),41,41.5,-73.5,-73,26-Apr
+Central CT (New Haven / Middlesex),41,41.5,-73,-72.5,30-Apr
+Eastern CT (New London / SE CT Coast),41,41.5,-72.5,-72,3-May
+Far Eastern CT (RI Border),41,41.5,-72,-71.5,5-May
+Hudson Valley Interior / NW CT Hills,41.5,42,-74,-73.5,10-May
+Litchfield Hills / NW CT,41.5,42,-73.5,-73,15-May
+North Central CT (Hartford Region),415,42,-73,-72.5,12-May
+NE CT Highlands,41.5,42,-72.5,-72,16-May
+Far NE CT / MA Border,41.5,42,-72,-71.5,18-May
