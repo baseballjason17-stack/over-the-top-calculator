@@ -10,7 +10,7 @@ st.set_page_config(page_title="Pumpkin Growth Dashboard", page_icon="🎃", layo
 # SIDEBAR NAVIGATION & SHARED INPUTS
 # ==============================================================================
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to tool:", ["🎃 Weight Calculator (OTT)", "🌤️ Weather & Risk Dashboard"])
+page = st.sidebar.radio("Go to tool:", ["🎃 Weight Calculator (OTT)", "🌤️ Weather & Risk Dashboard", "📅 16-Day Weather Outlook"])
 
 # ==============================================================================
 # TOOL 1: OTT WEIGHT CALCULATOR
@@ -264,3 +264,97 @@ elif page == "🌤️ Weather & Risk Dashboard":
                             st.info(reason)
         else:
             st.error("Invalid ZIP code or location not found. Please verify input.")
+
+
+# ==============================================================================
+# TOOL 3: 16-DAY WEATHER OUTLOOK
+# ==============================================================================
+elif page == "📅 16-Day Weather Outlook":
+    st.title("📅 16-Day Extended Weather Outlook")
+    st.write("Track extended atmospheric data and wind trends for long-term planning.")
+
+    # Sidebar parameters for this tool
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Extended Outlook Inputs")
+    extended_zip = st.sidebar.text_input("Enter 5-Digit ZIP Code:", value="11951", key="ext_zip").strip()
+
+    # Re-use your updated tracking calculations
+    def summarize_hourly_extended(hourly):
+        grouped = defaultdict(lambda: {"humidity": [], "cloud_cover": [], "precip_prob": [], "temperature": [], "dewpoint": [], "wind": []})
+        for t, h, c, p, temp_f, dew_f, wind_mph in zip(hourly["time"], hourly["relative_humidity_2m"], hourly["cloud_cover"], hourly["precipitation_probability"], hourly["temperature_2m"], hourly["dewpoint_2m"], hourly["wind_speed_10m"]):
+            day = t.split("T")[0]
+            grouped[day]["humidity"].append(h)
+            grouped[day]["cloud_cover"].append(c)
+            grouped[day]["precip_prob"].append(p)
+            grouped[day]["temperature"].append(temp_f)
+            grouped[day]["dewpoint"].append(dew_f)
+            grouped[day]["wind"].append(wind_mph)
+        
+        summary = {}
+        for day, values in grouped.items():
+            summary[day] = {
+                "avg_humidity": round(sum(values["humidity"]) / len(values["humidity"]), 1),
+                "avg_cloud_cover": round(sum(values["cloud_cover"]) / len(values["cloud_cover"]), 1),
+                "max_precip_prob": max(values["precip_prob"]),
+                "mean_temp": round(sum(values["temperature"]) / len(values["temperature"]), 1),
+                "dewpoint": round(sum(values["dewpoint"]) / len(values["dewpoint"]), 1),
+                "max_wind": max(values["wind"]),
+                "avg_wind": round(sum(values["wind"]) / len(values["wind"]), 1)
+            }
+        return summary
+
+    # Use Streamlit's caching magic so 16-day fetches don't slow down the UI
+    @st.cache_data(ttl=3600)
+    def get_extended_forecast(lat, lon):
+        url = "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": lat, "longitude": lon,
+            "hourly": "temperature_2m,relative_humidity_2m,dewpoint_2m,precipitation_probability,precipitation,wind_speed_10m,cloud_cover",
+            "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,precipitation_sum",
+            "temperature_unit": "fahrenheit", "wind_speed_unit": "mph", "precipitation_unit": "inch", "timezone": "auto", "forecast_days": 16
+        }
+        return requests.get(url, params=params, timeout=10).json()
+
+    # Re-using the geocoder function you already have configured
+    if extended_zip:
+        # Calls the function we made earlier
+        location = geocode_zip(extended_zip) 
+        if location:
+            st.success(f"📍 Showing 16-Day Outlook for: **{location['name']}, {location['state']}**")
+            
+            # Fetch 16 days of data instead of 7
+            forecast_data = get_extended_forecast(location["latitude"], location["longitude"])
+            extended_summary = summarize_hourly_extended(forecast_data["hourly"])
+            daily_data = forecast_data["daily"]
+
+            # Layout the 16 days inside clean interactive expanders
+            for i in range(len(daily_data["time"])):
+                day_str = daily_data["time"][i]
+                info = extended_summary.get(day_str, {})
+                
+                dt = datetime.strptime(day_str, "%Y-%m-%d")
+                readable_date = dt.strftime("%A, %b %d")
+                
+                with st.expander(f"📅 {readable_date} | High: {daily_data['temperature_2m_max'][i]}°F | Wind Max: {info.get('max_wind')} mph"):
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        st.markdown("**🌡️ Temperature Array**")
+                        st.write(f"• High: {daily_data['temperature_2m_max'][i]}°F")
+                        st.write(f"• Low: {daily_data['temperature_2m_min'][i]}°F")
+                        st.write(f"• Mean Daily: {info.get('mean_temp')}°F")
+                        st.write(f"• Avg Dew Point: {info.get('dewpoint')}°F")
+                        
+                    with col2:
+                        st.markdown("**💨 Wind Breakdown**")
+                        st.write(f"• Peak Gusts: {info.get('max_wind')} mph")
+                        st.write(f"• Sustained Avg: {info.get('avg_wind')} mph")
+                        
+                    with col3:
+                        st.markdown("**☁️ Atmosphere & Moisture**")
+                        st.write(f"• Total Rain: {daily_data['precipitation_sum'][i]} in")
+                        st.write(f"• Max Rain Chance: {daily_data['precipitation_probability_max'][i]}%")
+                        st.write(f"• Avg Humidity: {info.get('avg_humidity')}%")
+                        st.write(f"• Avg Cloud Cover: {info.get('avg_cloud_cover')}%")
+        else:
+            st.error("Invalid ZIP code. Please re-verify.")
