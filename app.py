@@ -179,7 +179,7 @@ st.caption(
     "are estimates based on environmental models and standard mathematical formulas. All patch management "
     "decisions, applications, and treatments are carried out entirely at the grower's own risk. This copilot "
     "is an informational tool, not an automated advisor. "
-
+)
 
 # ==============================================================================
 # TOOL 1: OTT WEIGHT CALCULATOR
