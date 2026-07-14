@@ -173,6 +173,13 @@ if page == "🏠 Home & Patch Notes":
     else:
         st.write("👈 Select a tool from the dropdown above to read its manual!")
 
+st.markdown("---")
+st.caption(
+    "**Notice:** Calculations, weather risk indicies, and growth timelines provided by this application "
+    "are estimates based on environmental models and standard mathematical formulas. All patch management "
+    "decisions, applications, and treatments are carried out entirely at the grower's own risk. This copilot "
+    "is an informational tool, not an automated advisor. "
+
 
 # ==============================================================================
 # TOOL 1: OTT WEIGHT CALCULATOR
