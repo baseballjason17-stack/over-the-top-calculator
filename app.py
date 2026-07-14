@@ -154,9 +154,9 @@ if page == "🏠 Home & Patch Notes":
         
         **How to use it:** Input your pollination date, time, and flower protection steps. The app uses historical local frost records to evaluate your seasonal timing.
         
-        **Note** Pollination date must be either current day or within the next 7 days for the live atmospheric audit.
+        **Note:** Pollination date must be either current day or within the next 7 days for the live atmospheric audit.
         
-        **Note** Only ZIP codes within the I-95 corridor work at this moment.
+        **Note:** Only ZIP codes within the I-95 corridor work at this moment.
         """)
     elif guide_step == "🌱 Cell Division Optimizer":
         st.write("""
@@ -168,7 +168,7 @@ if page == "🏠 Home & Patch Notes":
         
         3. Use the evaluation window slider to pick how many days you wish to view. Input your pollination date. If it falls within the active weather forecast, the app tracks daily high/low temperatures to pinpoint cellular stress windows.
         
-        **Note** Pollination date must fall within the evaluation window.
+        **Note:** Pollination date must fall within the evaluation window.
         """)
     else:
         st.write("👈 Select a tool from the dropdown above to read its manual!")
