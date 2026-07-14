@@ -140,19 +140,27 @@ if page == "🏠 Home & Patch Notes":
         st.write("""
         **What it does:** Provides a long-term look at wind trends, temperatures, and moisture.
         
-        **How to use it:** Use this tool to plan windbreak adjustments or schedule patch maintenance based on upcoming wind speeds and rain totals.
+        **How to use it:** 1. Enter your 5-digit ZIP code in the side bar.
+        2. View the daily weather cards to see future weather conditions
         """)
     elif guide_step == "🐝 Pollination Calculator":
         st.write("""
         **What it does:** Evaluates your physical pollination technique and audits historical frost windows.
         
         **How to use it:** Input your pollination date, time, and flower protection steps. The app uses historical local frost records to evaluate your seasonal timing.
+        **Note** Pollination date must be either current day or within the next 7 days for the live atmospheric audit.
+        **Note** Only ZIP codes within the I-95 corridor work at this moment.
         """)
     elif guide_step == "🌱 Cell Division Optimizer":
         st.write("""
         **What it does:** Audits weather conditions during the crucial 10-day post-pollination cell division phase.
         
-        **How to use it:** Input your pollination date. If it falls within the active weather forecast, the app tracks daily high/low temperatures to pinpoint cellular stress windows.
+        **How to use it:** 1. Enter your 5-digit ZIP code.
+        2. Enter the pollination date reference.
+        3. Use the evaluation window slider to pick how many days you wish to view.
+        **Note** Pollination date must fall within the evaluation window.
+        
+        Input your pollination date. If it falls within the active weather forecast, the app tracks daily high/low temperatures to pinpoint cellular stress windows.
         """)
     else:
         st.write("👈 Select a tool from the dropdown above to read its manual!")
