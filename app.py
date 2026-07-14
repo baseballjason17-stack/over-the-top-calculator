@@ -56,13 +56,106 @@ st.sidebar.markdown(
 )
 
 # ==============================================================================
-# Home
+# PAGE 0: HOME & PATCH NOTES (DEFAULT)
 # ==============================================================================
-if page == "Home":
-    st.title("Home")
-    st.write("Welcome to Meuschke Farms Pumpkin Grwoing Dashboard")
+if page == "🏠 Home & Patch Notes":
+    st.title("🎃 Giant Pumpkin Copilot")
+    st.subheader("Your data-driven patch companion.")
+    
+    st.markdown("---")
+    
+    # 📰 Section 1: Patch Notes / Blog (Updates)
+    st.markdown("### 📰 Patch Notes & Feature Updates")
+    
+    # We use st.expander so older updates don't clutter the screen, but are still accessible!
+    with st.expander("🚀 Version 1.2 Beta Update — July 2026 (New Features!)", expanded=True):
+        st.markdown("""
+        * **🌱 New Tool Added:** The *Cell Division Window Optimizer* is now live! Monitor the critical 10-day post-pollination cellular growth phase.
+        * **🐝 Pollination Upgrades:** The Pollination Calculator now automatically pulls live weather data at your exact pollination hour to audit temperature, wind, and humidity.
+        * **💨 Wind Metrics:** The 16-Day Weather Outlook now tracks both sustained average wind speeds and maximum gusts.
+        """)
+        
+    with st.expander("🛠️ Version 1.1 Beta Update — June 2026"):
+        st.markdown("""
+        * **🌤️ Weather Engine Upgrade:** Switched to a responsive 3-column layout for daily risk cards.
+        * **⚖️ Legal Safety Net:** Added permanent, muted agricultural disclaimers to the sidebar.
+        """)
 
+    st.markdown("---")
 
+    # 🤝 Section 2: Welcome & Our Philosophy (Describe, Don't Prescribe)
+    col_welcome, col_philosoph = st.columns(2)
+    
+    with col_welcome:
+        st.markdown("### 👋 Welcome to the Patch")
+        st.write("""
+        This platform is built for competitive giant pumpkin growers who want to replace guesswork with data. 
+        Whether you are tracking daily over-the-top (OTT) growth, timing your pollination windows, or auditing 
+        atmospheric stress, this suite of tools formats your metrics cleanly so you can make informed decisions 
+        right from your phone.
+        """)
+        
+    with col_philosoph:
+        st.markdown("### ⚖️ Our Copilot Philosophy")
+        st.info("""
+        **We describe; we do not prescribe.** This app will never tell you what fertilizer to apply, how much water to dump, or when to spray. 
+        Instead, we translate complex environmental variables into clean mathematical metrics. **You** are the grower, 
+        and **you** make the final calls.
+        """)
+
+    st.markdown("---")
+
+    # 💡 Section 3: Interactive Quick-Start Guide
+    st.markdown("### 💡 Interactive Quick-Start Guide")
+    
+    guide_step = st.selectbox(
+        "Select a tool to learn how to use it:",
+        [
+            "Select a tool...",
+            "🎃 Weight Calculator (OTT)",
+            "🌤️ Weather & Risk Dashboard",
+            "📅 16-Day Weather Outlook",
+            "🐝 Pollination Calculator",
+            "🌱 Cell Division Optimizer"
+        ]
+    )
+    
+    if guide_step == "🎃 Weight Calculator (OTT)":
+        st.write("""
+        **What it does:** Estimates your pumpkin's weight using the standard Over-The-Top (OTT) formula.
+        
+        **How to use it:** 1. Grab a flexible tape measure.
+        2. Measure *Side-to-Side* (ground to ground over the widest part), *End-to-End* (stem to blossom end), and *Circumference* (parallel to the ground at the widest midpoint).
+        3. Input the numbers in inches to get your instant weight calculation in both pounds and kilograms.
+        """)
+    elif guide_step == "🌤️ Weather & Risk Dashboard":
+        st.write("""
+        **What it does:** Scores daily pumpkin growth potential and powdery mildew disease risks.
+        
+        **How to use it:** 1. Enter your 5-digit ZIP code in the sidebar.
+        2. Enter your current Days After Pollination (DAP).
+        3. Check the daily risk cards to see if overnight temps are dipping too low or if high humidity is creating a mildew risk.
+        """)
+    elif guide_step == "📅 16-Day Weather Outlook":
+        st.write("""
+        **What it does:** Provides a long-term look at wind trends, temperatures, and moisture.
+        
+        **How to use it:** Use this tool to plan windbreak adjustments or schedule patch maintenance based on upcoming wind speeds and rain totals.
+        """)
+    elif guide_step == "🐝 Pollination Calculator":
+        st.write("""
+        **What it does:** Evaluates your physical pollination technique and audits historical frost windows.
+        
+        **How to use it:** Input your pollination date, time, and flower protection steps. The app uses historical local frost records to evaluate your seasonal timing.
+        """)
+    elif guide_step == "🌱 Cell Division Optimizer":
+        st.write("""
+        **What it does:** Audits weather conditions during the crucial 10-day post-pollination cell division phase.
+        
+        **How to use it:** Input your pollination date. If it falls within the active weather forecast, the app tracks daily high/low temperatures to pinpoint cellular stress windows.
+        """)
+    else:
+        st.write("👈 Select a tool from the dropdown above to read its manual!")
 
 
 # ==============================================================================
