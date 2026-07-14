@@ -75,7 +75,7 @@ if page == "🏠 Home & Patch Notes":
         * **💨 Wind Metrics:** The 16-Day Weather Outlook now tracks both sustained average wind speeds and maximum gusts.
         """)
         
-    with st.expander("🛠️ Version 1.1 Beta Update — June 2026"):
+    with st.expander("🛠️ Version 1.1 Beta Update — March 2026"):
         st.markdown("""
         * **🌤️ Weather Engine Upgrade:** Switched to a responsive 3-column layout for daily risk cards.
         * **⚖️ Legal Safety Net:** Added permanent, muted agricultural disclaimers to the sidebar.
