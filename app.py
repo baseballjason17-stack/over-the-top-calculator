@@ -124,31 +124,51 @@ if page == "🏠 Home & Patch Notes":
         st.write("""
         **What it does:** Estimates your pumpkin's weight using the standard Over-The-Top (OTT) formula.
         
-        **How to use it:** 1. Grab a flexible tape measure.  2. Measure *Side-to-Side* (ground to ground over the widest part), *End-to-End* (stem to blossom end), and *Circumference* (parallel to the ground at the widest midpoint).  3. Input the numbers in inches to get your instant weight calculation in both pounds and kilograms.
+        **How to use it:** 1. Grab a flexible tape measure.
+        
+        2. Measure *Side-to-Side* (ground to ground over the widest part), *End-to-End* (stem to blossom end), and *Circumference* (parallel to the ground at the widest midpoint).
+        
+        3. Input the numbers in inches to get your instant weight calculation in both pounds and kilograms.
         """)
     elif guide_step == "🌤️ Weather & Risk Dashboard":
         st.write("""
         **What it does:** Scores daily pumpkin growth potential and powdery mildew disease risks.
         
-        **How to use it:** 1. Enter your 5-digit ZIP code in the sidebar. <br>2. Enter your current Days After Pollination (DAP). <br>3. Check the daily risk cards to see if overnight temps are dipping too low or if high humidity is creating a mildew risk.
+        **How to use it:** 1. Enter your 5-digit ZIP code in the sidebar.
+        
+        2. Enter your current Days After Pollination (DAP).
+        
+        3. Check the daily risk cards to see if overnight temps are dipping too low or if high humidity is creating a mildew risk.
         """)
     elif guide_step == "📅 16-Day Weather Outlook":
         st.write("""
         **What it does:** Provides a long-term look at wind trends, temperatures, and moisture.
         
-        **How to use it:** 1. Enter your 5-digit ZIP code in the side bar. <br>2. View the daily weather cards to see future weather conditions
+        **How to use it:** 1. Enter your 5-digit ZIP code in the side bar.
+        
+        2. View the daily weather cards to see future weather conditions
         """)
     elif guide_step == "🐝 Pollination Calculator":
         st.write("""
         **What it does:** Evaluates your physical pollination technique and audits historical frost windows.
         
-        **How to use it:** Input your pollination date, time, and flower protection steps. The app uses historical local frost records to evaluate your seasonal timing. <br>**Note** Pollination date must be either current day or within the next 7 days for the live atmospheric audit.  **Note** Only ZIP codes within the I-95 corridor work at this moment.
+        **How to use it:** Input your pollination date, time, and flower protection steps. The app uses historical local frost records to evaluate your seasonal timing.
+        
+        **Note** Pollination date must be either current day or within the next 7 days for the live atmospheric audit.
+        
+        **Note** Only ZIP codes within the I-95 corridor work at this moment.
         """)
     elif guide_step == "🌱 Cell Division Optimizer":
         st.write("""
         **What it does:** Audits weather conditions during the crucial 10-day post-pollination cell division phase.
         
-        **How to use it:** 1. Enter your 5-digit ZIP code. <br>2. Enter the pollination date reference. <br>3. Use the evaluation window slider to pick how many days you wish to view. Input your pollination date. If it falls within the active weather forecast, the app tracks daily high/low temperatures to pinpoint cellular stress windows. <br>**Note** Pollination date must fall within the evaluation window.
+        **How to use it:** 1. Enter your 5-digit ZIP code.
+        
+        2. Enter the pollination date reference.
+        
+        3. Use the evaluation window slider to pick how many days you wish to view. Input your pollination date. If it falls within the active weather forecast, the app tracks daily high/low temperatures to pinpoint cellular stress windows.
+        
+        **Note** Pollination date must fall within the evaluation window.
         """)
     else:
         st.write("👈 Select a tool from the dropdown above to read its manual!")
