@@ -1060,7 +1060,7 @@ return {
 
 #fetch 7 days of forecast to fill 1 main box + 6 sidebar layout.
 @st.cache_data(ttl=3600)
-    def get_forecast_pm(lat, lon):
+def get_forecast_pm(lat, lon):
         url = "https://api.open-meteo.com/v1/forecast"
         params = {
             "latitude": lat, "longitude": lon,
@@ -1070,7 +1070,7 @@ return {
         }
         return requests.get(url, params=params, timeout=10).json()
 
-    def summarize_hourly_pm(hourly):
+def summarize_hourly_pm(hourly):
         grouped = defaultdict(lambda: {"humidity": [], "cloud_cover": [], "precip_prob": [], "temperature": [], "dewpoint": [], "wind_direction": []})
         for t, h, c, p, temp_f, dew_f, wind_d in zip(
             hourly["time"], hourly["relative_humidity_2m"], hourly["cloud_cover"], 
