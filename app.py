@@ -956,7 +956,7 @@ elif page == "Powdery Mildew Risk Center":
 
     def temp_score(temp_f):
         if temp_f < 50: return 0
-            elif temp_f < 60: return 10
+elif temp_f < 60: return 10
 elif temp_f <  68: return 20
 elif temp_f <= 80: return 30
 elif temp_f <= 90: return 20
