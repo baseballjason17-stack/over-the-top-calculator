@@ -940,95 +940,98 @@ elif page == "🌱 Cell Division Optimizer":
             st.error("Invalid ZIP code selection.")
 
 
-# =================================================================
+# ==============================================================================
 # TOOL: POWDERY MILDEW RISK CENTER
-# =================================================================
+# ==============================================================================
+elif page == "🔬 Powdery Mildew Risk Center":
+    st.title("🔬 Powdery Mildew Risk Center")
+    st.write("Track geographical spore drift risks, microclimatic humidity, and weather conditions favoring fungal outbreak.")
 
-elif page == "Powdery Mildew Risk Center":
-    st.title("Powdery Mildew Risk Center")
-    st.write("Track microclimatic humidity and weather conditions favoring fungal outbreaks.")
-
-    st.sidebare.markdown("---")
+    st.sidebar.markdown("---")
     st.sidebar.subheader("Mildew Parameters")
-    zip_code = st.sidebar.text_input("Enter 5-Digit ZIP Code:", value=" ", key="pm_zip").strip()
-    dap_pm = st.sidebar.number_input("Current DAP:", min_value=0, value=" ", key="pm_dap")
-    fruit_set = st.sidebare.checkbox("Fruit is Set", value=True, key="pm_fruit_set")
+    zip_code = st.sidebar.text_input("Enter 5-Digit ZIP Code:", value="11951", key="pm_zip").strip()
+    dap_pm = st.sidebar.number_input("Current DAP:", min_value=0, value=30, key="pm_dap")
+    fruit_set = st.sidebar.checkbox("Fruit is Set", value=True, key="pm_fruit_set")
 
-def temp_score(temp_f):
-    if temp_f < 50: return 0
-    elif temp_f < 60: return 10
-    elif temp_f <  68: return 20
-    elif temp_f <= 80: return 30
-    elif temp_f <= 90: return 20
-    elif temp_f < 100: return 10
-    else: return 0
+    # Re-use your calculated scores logic locally inside the page
+    def temp_score(temp_f):
+        if temp_f < 50: return 0
+        elif temp_f < 60: return 10
+        elif temp_f < 68: return 20
+        elif temp_f <= 80: return 30
+        elif temp_f <= 90: return 20
+        elif temp_f < 100: return 10
+        else: return 0
 
-def rh_score(rh):
-    if rh < 50: return 2
-    elif rh < 65: return 8
-    elif rh < 75: return 14
-    else: return 20
+    def rh_score(rh):
+        if rh < 50: return 2
+        elif rh < 65: return 8
+        elif rh < 75: return 14
+        else: return 20
 
-def cloud_score(cloud):
-    if cloud < 30: return 5
-    elif cloud < 70: return 10
-    else: return 15
+    def cloud_score(cloud):
+        if cloud < 30: return 5
+        elif cloud < 70: return 10
+        else: return 15
 
-def wind_score(wind_mph):
-    if wind_mph < 2: return 6
-    elif wind_mph <= 8: return 10
-    elif wind_mph <= 15: return 6
-    else: return 3
+    def wind_score(wind_mph):
+        if wind_mph < 2: return 6
+        elif wind_mph <= 8: return 10
+        elif wind_mph <= 15: return 6
+        else: return 3
 
-def dew_score(dewpoint_f, temp_f):
-    spread = temp_f - dewpoint_f
-    if spread <= 2: return 5
-    elif spread <= 5: return 3
-    else: return 1
+    def dew_score(dewpoint_f, temp_f):
+        spread = temp_f - dewpoint_f
+        if spread <= 2: return 5
+        elif spread <= 5: return 3
+        else: return 1
 
-def rain_penalty(rain_inches):
-    if rain_inches == 0: return 0
-    elif rain_inches < 0.10: return 5
-    elif rain_inches < 0.25: return 12
-    else: return 20
+    def rain_penalty(rain_inches):
+        if rain_inches == 0: return 0
+        elif rain_inches < 0.10: return 5
+        elif rain_inches < 0.25: return 12
+        else: return 20
 
-def growth_stage_multiplier(dap, fruit_set):
-    if not fruit_set or dap < 20: return 0.65
-    elif dap < 35: return 0.9
-    else: return 1.1
+    def growth_stage_multiplier(dap, fruit_set):
+        if not fruit_set or dap < 20: return 0.65
+        elif dap < 35: return 0.9
+        else: return 1.1
 
-def calculate_pm_details(day, multiplier, longitude):
-    base_score = (
-        temp_score(day["mean_temp"]) +
-        rh_score(day["avg_humidity"]) +
-        cloud_score(day["avg_cloud_cover"]) +
-        wind_score(day["max_wind"]) +
-        dew_score(day["dewpoint"], day["mean_temp"]) -
-        rain_penalty(day["rain_total"])
-    )
+    def calculate_pm_details(day, multiplier, longitude):
+        base_score = (
+            temp_score(day["mean_temp"]) +
+            rh_score(day["avg_humidity"]) +
+            cloud_score(day["avg_cloud_cover"]) +
+            wind_score(day["max_wind"]) +
+            dew_score(day["dewpoint"], day["mean_temp"]) -
+            rain_penalty(day["rain_total"])
+        )
 
-is_east_end = longitude > 72.7
-wind_dir = day.get("avg_wind_direction", 270)
-is_west_wind = 200 <= wind_dir <= 310
-is_east_wind = 45 <= wind_dir <= 135
+        is_east_end = longitude > -72.7
+        wind_dir = day.get("avg_wind_direction", 270)
+        is_west_wind = 200 <= wind_dir <= 310
+        is_east_wind = 45 <= wind_dir <= 135
 
-wind_adjustment = 0
-wind_note = ""
+        wind_adjustment = 0
+        wind_note = ""
 
-if is_east_end:
-    if is_west_wind:
-        wind_adjustment = 15
-        wind_note = "Westerly Winds: Elevated spore drift from western patches possible."
-    elif is_east_wind:
-        wind_adjustment = -10
-        wind_note = "Eastrly Winds: Clean marine air, reduction in spore risk possible."
-else:
-    if is_east_wind:
-        wind_adjustment = 10
-        wind_note = "Easterly Wind: Spores migrating westward from agricultural hubs possible."
-# 2 East winds??
-# North or South winds?
-if final_score < 25:
+        if is_east_end:
+            if is_west_wind:
+                wind_adjustment = 15
+                wind_note = "💨 West Wind: Elevated spore drift risk from western patches."
+            elif is_east_wind:
+                wind_adjustment = -10
+                wind_note = "🌊 East Wind: Clean marine air reduces spore risk."
+        else:
+            if is_east_wind:
+                wind_adjustment = 10
+                wind_note = "💨 East Wind: Spores migrating westward from agricultural hubs."
+
+        base_score = max(0, min(base_score + wind_adjustment, 100))
+        final_score = base_score * multiplier
+        final_score = max(0, min(final_score, 100))
+
+        if final_score < 25:
             category = "Low"
             status_desc = "Pressure is minimal. Conditions unfavorable for outbreak."
             action_guidance = "Normal scouting; regular preventative program is sufficient."
@@ -1057,9 +1060,10 @@ if final_score < 25:
             "wind_note": wind_note,
             "box_style": box_style
         }
-#fetch 7 days of forecast to fill 1 main box + 6 sidebar layout.
-@st.cache_data(ttl=3600)
-def get_forecast_pm(lat, lon):
+
+    # Fetch 7 days of forecast to fill the 1 Main + 6 Sidebar layout
+    @st.cache_data(ttl=3600)
+    def get_forecast_pm(lat, lon):
         url = "https://api.open-meteo.com/v1/forecast"
         params = {
             "latitude": lat, "longitude": lon,
@@ -1069,7 +1073,7 @@ def get_forecast_pm(lat, lon):
         }
         return requests.get(url, params=params, timeout=10).json()
 
-def summarize_hourly_pm(hourly):
+    def summarize_hourly_pm(hourly):
         grouped = defaultdict(lambda: {"humidity": [], "cloud_cover": [], "precip_prob": [], "temperature": [], "dewpoint": [], "wind_direction": []})
         for t, h, c, p, temp_f, dew_f, wind_d in zip(
             hourly["time"], hourly["relative_humidity_2m"], hourly["cloud_cover"], 
@@ -1095,7 +1099,7 @@ def summarize_hourly_pm(hourly):
             }
         return summary
 
-if zip_code:
+    if zip_code:
         location = geocode_zip(zip_code)
         if location:
             raw_forecast = get_forecast_pm(location["latitude"], location["longitude"])
