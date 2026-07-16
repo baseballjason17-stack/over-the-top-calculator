@@ -231,8 +231,7 @@ elif page == "🌤️ Weather & Growth Dashboard":
     st.sidebar.markdown("---")
     st.sidebar.subheader("Dashboard Inputs")
     zip_code = st.sidebar.text_input("Enter 5-Digit ZIP Code:", value="11951", key="w_zip").strip()
-    dap_weather = st.sidebar.number_input("Current DAP:", min_value=0, value=30, key="w_dap")
-    fruit_set = st.sidebar.checkbox("Fruit is Set", value=True, key="w_fruit")
+    
 
     # Cardinal Wind Converter Helper
     def degrees_to_cardinal(deg):
