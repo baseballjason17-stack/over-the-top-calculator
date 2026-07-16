@@ -1029,35 +1029,34 @@ else:
 # 2 East winds??
 # North or South winds?
 if final_score < 25:
-    category = "Low"
-    status_desc = "Powdery Mildew pressure is minimal, but not zero. Conditions unfavorable for outbreak."
-    action_guidance = "Normal scouting; regular preventative program is sufficient."
-    box_style = st.success
-elif final_score < 50:
-    category = "Moderate"
-    status_desc = "Midlew conditons rising slightly. Conditions neutral for outbreak."
-    action_guidance = "Maintain protective coverage. Insprect shaded inner vine structures."
-    box_style = st.info
-elif final_score <  75:
-    category = "High"
-    status_desc = "Powdery Mildew pressure is high, favorable conditons for spore growth. Spores may germinate quickly."
-    action_guidance = "High risk. Ensure fungicide coverage is active and clean."
-    box_style = st.warning
-else:
-    category = "Very High"
-    status_desc = "Powdery Mildew pressure is very high. Ideal conditions for spore germination and spore transfers between leaves and patches."
-    action_guidance = "Check patch immediately for spots or signs of powdery mildew."
-    box_style = st.error
+            category = "Low"
+            status_desc = "Pressure is minimal. Conditions unfavorable for outbreak."
+            action_guidance = "Normal scouting; regular preventative program is sufficient."
+            box_style = st.success
+        elif final_score < 50:
+            category = "Moderate"
+            status_desc = "Mildew conditions rising slightly. Monitor lower leaves."
+            action_guidance = "Maintain protective coverage. Inspect shaded inner vine structures."
+            box_style = st.info
+        elif final_score < 75:
+            category = "High"
+            status_desc = "Favorable growth conditions. Spores will germinate quickly."
+            action_guidance = "High risk. Ensure fungicide coverage is active and clean."
+            box_style = st.warning
+        else:
+            category = "Very High"
+            status_desc = "Perfect storm for outbreak. Spore pressure is maxed."
+            action_guidance = "Critical alert. Spray accordingly/inspect patch immediately for spots."
+            box_style = st.error
 
-return {
-    "score": round(final_score, 1),
-    "category": category,
-    "desc": status_desc,
-    "action": action_guidance,
-    "wind_note": wind_note,
-    "box_style": box_style
-}
-
+        return {
+            "score": round(final_score, 1),
+            "category": category,
+            "desc": status_desc,
+            "action": action_guidance,
+            "wind_note": wind_note,
+            "box_style": box_style
+        }
 #fetch 7 days of forecast to fill 1 main box + 6 sidebar layout.
 @st.cache_data(ttl=3600)
 def get_forecast_pm(lat, lon):
