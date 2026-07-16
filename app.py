@@ -1183,26 +1183,32 @@ elif page == "Powdery Mildew Risk Center":
                         st.markdown(f"**{day_lbl}**")
                         # Emphasize color inline
                         # Emphasize color inline
-                            if pm_details["category"] == "Low":
-                                lbl_color = "green"
-                            elif pm_details["category"] == "Moderate":
-                                lbl_color = "orange"
-                            else:
-                                lbl_color = "red"
+                        if pm_details["category"] == "Low":
+                            lbl_color = "green"
+                        elif pm_details["category"] == "Moderate":
+                             lbl_color = "orange"
+                        else:
+                            lbl_color = "red"
     
                 # Corrected syntax: :color[text]
-                            st.markdown(
-                                f"Risk: :{lbl_color}[**{pm_details['category']}**] | Score: `{pm_details['score']}`"
+                        st.markdown(
+                            f"Risk: :{lbl_color}[**{pm_details['category']}**] | Score: `{pm_details['score']}`"
             )
 
         else:
             st.error("Invalid ZIP code selection.")
 
-
-st.markdown("---")
-st.caption(
-    "**Notice:** Calculations, weather risk indicies, and growth timelines provided by this application "
-    "are estimates based on environmental models and standard mathematical formulas. All patch management "
-    "decisions, applications, and treatments are carried out entirely at the grower's own risk. This copilot "
-    "is an informational tool, not an automated advisor. "
+# ==============================================================================
+# GLOBAL SIDEBAR FOOTER (PINNED TO BOTTOM)
+# ==============================================================================
+st.sidebar.markdown("---")
+st.sidebar.markdown(
+    """
+    <div style="font-size: 0.75rem; color: #888888; line-height: 1.2; text-align: justify;">
+        <strong>⚠️ Disclaimer:</strong><br>
+        This dashboard provides agricultural estimations and environmental analysis for informational purposes only. 
+        Patch management, watering, and chemical application decisions are made at the sole discretion and risk of the grower.
+    </div>
+    """,
+    unsafe_allow_html=True
 )
