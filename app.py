@@ -936,8 +936,8 @@ elif page == "🌱 Cell Division Optimizer":
 # ==============================================================================
 # TOOL: POWDERY MILDEW RISK CENTER
 # ==============================================================================
-elif page == "Powdery Mildew Risk Center":
-    st.title("Powdery Mildew Risk Center")
+elif page == "🔬 Powdery Mildew Risk Center":
+    st.title("🔬 Powdery Mildew Risk Center")
     st.write("Track geographical spore drift risks, microclimatic humidity, and weather conditions favoring fungal outbreak.")
 
     st.sidebar.markdown("---")
@@ -1055,22 +1055,34 @@ elif page == "Powdery Mildew Risk Center":
             category = "Low"
             status_desc = f"Pressure in {region_name} is minimal. Conditions unfavorable."
             action_guidance = "Normal scouting; regular preventative program is sufficient."
-            box_style = st.success
+            bg_color = "#d4edda"
+            text_color = "#155724"
+            border_color = "#c3e6cb"
+            lbl_color = "green"
         elif final_score < 50:
             category = "Moderate"
             status_desc = f"Mildew conditions in {region_name} rising slightly. Monitor lower canopy."
             action_guidance = "Maintain protective coverage. Inspect shaded inner vine structures."
-            box_style = st.info
+            bg_color = "#fff3cd"
+            text_color = "#856404"
+            border_color = "#ffeeba"
+            lbl_color = "orange"
         elif final_score < 75:
             category = "High"
             status_desc = f"Favorable growth conditions in {region_name}. Spores will germinate quickly."
             action_guidance = "High risk. Ensure fungicide coverage is active and clean."
-            box_style = st.warning
+            bg_color = "#f8d7da"
+            text_color = "#721c24"
+            border_color = "#f5c6cb"
+            lbl_color = "red"
         else:
             category = "Very High"
             status_desc = f"Perfect storm for outbreak in {region_name}."
             action_guidance = "Critical alert. Spray accordingly/inspect patch immediately for spots."
-            box_style = st.error
+            bg_color = "#f3e5f5"
+            text_color = "#4a148c"
+            border_color = "#e1bee7"
+            lbl_color = "purple"
 
         return {
             "score": round(final_score, 1),
@@ -1078,7 +1090,10 @@ elif page == "Powdery Mildew Risk Center":
             "desc": status_desc,
             "action": action_guidance,
             "wind_note": wind_note,
-            "box_style": box_style,
+            "bg_color": bg_color,
+            "text_color": text_color,
+            "border_color": border_color,
+            "lbl_color": lbl_color,
             "region": region_name
         }
 
@@ -1153,10 +1168,26 @@ elif page == "Powdery Mildew Risk Center":
 
                 st.subheader(f"📅 Today's Risk Profile ({readable_date})")
                 
-                # Render the stylized status block
-                today_pm["box_style"](
-                    f"### **{today_pm['category']} Risk** — Index Score: `{today_pm['score']}/100`  \n"
-                    f"**Guidance:** {today_pm['action']}"
+                # Render the stylized status block with dynamic custom CSS box formatting
+                st.markdown(
+                    f"""
+                    <div style="
+                        background-color: {today_pm['bg_color']}; 
+                        color: {today_pm['text_color']}; 
+                        border: 1px solid {today_pm['border_color']}; 
+                        padding: 1.5rem; 
+                        border-radius: 0.5rem; 
+                        margin-bottom: 1.5rem;
+                    ">
+                        <h3 style="margin: 0 0 0.5rem 0; color: {today_pm['text_color']};">
+                            {today_pm['category']} Risk — Index Score: {today_pm['score']}/100
+                        </h3>
+                        <p style="margin: 0; font-size: 1.1rem; font-weight: 500;">
+                            <strong>Guidance:</strong> {today_pm['action']}
+                        </p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
                 )
 
                 # Summary metrics card list below
@@ -1181,19 +1212,11 @@ elif page == "Powdery Mildew Risk Center":
                     # Small, clean container cards for each upcoming day
                     with st.container(border=True):
                         st.markdown(f"**{day_lbl}**")
-                        # Emphasize color inline
-                        # Emphasize color inline
-                        if pm_details["category"] == "Low":
-                            lbl_color = "green"
-                        elif pm_details["category"] == "Moderate":
-                             lbl_color = "orange"
-                        else:
-                            lbl_color = "red"
-    
-                # Corrected syntax: :color[text]
+                        # Emphasize color inline using corrected syntax: :color[text]
                         st.markdown(
-                            f"Risk: :{lbl_color}[**{pm_details['category']}**] | Score: `{pm_details['score']}`"
-            )
+                            f"Risk: :{pm_details['lbl_color']}[**{pm_details['category']}**] | Score: `{pm_details['score']}`"
+                        )
+                        st.caption(f"Temp: {day_data['mean_temp']}°F | Wind: {degrees_to_cardinal(day_data['avg_wind_direction'])}")
 
         else:
             st.error("Invalid ZIP code selection.")
