@@ -1096,7 +1096,7 @@ def summarize_hourly_pm(hourly):
             }
         return summary
 
-    if zip_code:
+if zip_code:
         location = geocode_zip(zip_code)
         if location:
             raw_forecast = get_forecast_pm(location["latitude"], location["longitude"])
