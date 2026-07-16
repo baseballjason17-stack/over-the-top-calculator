@@ -406,9 +406,12 @@ elif page == "🌤️ Weather & Growth Dashboard":
                 day_string = daily["time"][i]
                 extra = hourly_summary.get(day_string, {})
                 
-                # Fetch daily average PM2.5 or fall back to zero if out of index limits (AQI is typically 5 days)
-                pms_list = daily_pm25.get(day_string, [0.0])
-                avg_pm25 = sum(pms_list) / len(pms_list) if pms_list else 0.0
+# Fetch daily average PM2.5, filtering out any None values
+raw_pms_list = daily_pm25.get(day_string, [0.0])
+pms_list = [val for val in raw_pms_list if val is not None]
+
+# Calculate the average safely
+avg_pm25 = sum(pms_list) / len(pms_list) if pms_list else 0.0
 
                 day_data = {
                     "date": day_string,
