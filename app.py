@@ -955,47 +955,47 @@ elif page == "Powdery Mildew Risk Center":
     fruit_set = st.sidebare.checkbox("Fruit is Set", value=True, key="pm_fruit_set")
 
 def temp_score(temp_f):
-        if temp_f < 50: return 0
-elif temp_f < 60: return 10
-elif temp_f <  68: return 20
-elif temp_f <= 80: return 30
-elif temp_f <= 90: return 20
-elif temp_f < 100: return 10
-else: return 0
+    if temp_f < 50: return 0
+    elif temp_f < 60: return 10
+    elif temp_f <  68: return 20
+    elif temp_f <= 80: return 30
+    elif temp_f <= 90: return 20
+    elif temp_f < 100: return 10
+    else: return 0
 
 def rh_score(rh):
     if rh < 50: return 2
-elif rh < 65: return 8
-elif rh < 75: return 14
-else: return 20
+    elif rh < 65: return 8
+    elif rh < 75: return 14
+    else: return 20
 
 def cloud_score(cloud):
     if cloud < 30: return 5
-elif cloud < 70: return 10
-else: return 15
+    elif cloud < 70: return 10
+    else: return 15
 
 def wind_score(wind_mph):
     if wind_mph < 2: return 6
-elif wind_mph <= 8: return 10
-elif wind_mph <= 15: return 6
-else: return 3
+    elif wind_mph <= 8: return 10
+    elif wind_mph <= 15: return 6
+    else: return 3
 
 def dew_score(dewpoint_f, temp_f):
     spread = temp_f - dewpoint_f
     if spread <= 2: return 5
-elif spread <= 5: return 3
-else: return 1
+    elif spread <= 5: return 3
+    else: return 1
 
 def rain_penalty(rain_inches):
     if rain_inches == 0: return 0
-elif rain_inches < 0.10: return 5
-elif rain_inches < 0.25: return 12
-else: return 20
+    elif rain_inches < 0.10: return 5
+    elif rain_inches < 0.25: return 12
+    else: return 20
 
 def growth_stage_multiplier(dap, fruit_set):
     if not fruit_set or dap < 20: return 0.65
-elif dap < 35: return: 0.9
-else: return 1.1
+    elif dap < 35: return: 0.9
+    else: return 1.1
 
 def calculate_pm_details(day, multiplier, longitude):
     base_score = (
