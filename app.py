@@ -1023,7 +1023,7 @@ if is_east_end:
         wind_adjustment = -10
         wind_note = "Eastrly Winds: Clean marine air, reduction in spore risk possible."
 else:
-        if is_east_wind:
+    if is_east_wind:
         wind_adjustment = 10
         wind_note = "Easterly Wind: Spores migrating westward from agricultural hubs possible."
 # 2 East winds??
