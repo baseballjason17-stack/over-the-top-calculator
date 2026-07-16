@@ -49,8 +49,7 @@ st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to tool:", [
     "🏠 Home & Patch Notes",
     "🎃 Weight Calculator (OTT)", 
-    "🌤️ Weather & Risk Dashboard", 
-    "📅 16-Day Weather Outlook",
+    "🌤️ Weather & Growth Dashboard",
     "🐝 Pollination Calculator",
     "🌱 Cell Division Optimizer",
     "Powdery Mildew Risk Center"
