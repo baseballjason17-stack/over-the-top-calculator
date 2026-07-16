@@ -936,8 +936,8 @@ elif page == "🌱 Cell Division Optimizer":
 # ==============================================================================
 # TOOL: POWDERY MILDEW RISK CENTER
 # ==============================================================================
-elif page == "🔬 Powdery Mildew Risk Center":
-    st.title("🔬 Powdery Mildew Risk Center")
+elif page == "Powdery Mildew Risk Center":
+    st.title("Powdery Mildew Risk Center")
     st.write("Track geographical spore drift risks, microclimatic humidity, and weather conditions favoring fungal outbreak.")
 
     st.sidebar.markdown("---")
