@@ -52,7 +52,8 @@ page = st.sidebar.radio("Go to tool:", [
     "🌤️ Weather & Risk Dashboard", 
     "📅 16-Day Weather Outlook",
     "🐝 Pollination Calculator",
-    "🌱 Cell Division Optimizer"
+    "🌱 Cell Division Optimizer",
+    "Powdery Mildew Risk Center"
 ])
 
 
@@ -462,7 +463,7 @@ elif page == "🌤️ Weather & Risk Dashboard":
         else:
             st.error("Invalid ZIP code or location not found. Please verify input.")
 
-# ==============================================================================
+        # ==============================================================================
         # 💨 WILDFIRE SMOKE & AIR QUALITY MONITOR
         # ==============================================================================
         st.markdown("### 💨 Live Smoke & Air Quality Monitor")
@@ -935,5 +936,238 @@ elif page == "🌱 Cell Division Optimizer":
                             st.write("**Cell Division Stress Factors:**")
                             for r in day["reasons"]:
                                 st.write(f"- {r}")
+        else:
+            st.error("Invalid ZIP code selection.")
+
+
+# =================================================================
+# TOOL: POWDERY MILDEW RISK CENTER
+# =================================================================
+
+elif page == "Powdery Mildew Risk Center":
+    st.title("Powdery Mildew Risk Center")
+    st.write("Track microclimatic humidity and weather conditions favoring fungal outbreaks.")
+
+    st.sidebare.markdown("---")
+    st.sidebar.subheader("Mildew Parameters")
+    zip_code = st.sidebar.text_input("Enter 5-Digit ZIP Code:", value=" ", key="pm_zip").strip()
+    dap_pm = st.sidebar.number_input("Current DAP:", min_value=0, value=" ", key="pm_dap")
+    fruit_set = st.sidebare.checkbox("Fruit is Set", value=True, key="pm_fruit_set")
+
+    def temp_score(temp_f):
+        if temp_f < 50: return 0
+            elif temp_f < 60: return 10
+elif temp_f <  68: return 20
+elif temp_f <= 80: return 30
+elif temp_f <= 90: return 20
+elif temp_f < 100: return 10
+else: return 0
+
+def rh_score(rh):
+    if rh < 50: return 2
+elif rh < 65: return 8
+elif rh < 75: return 14
+else: return 20
+
+def cloud_score(cloud):
+    if cloud < 30: return 5
+elif cloud < 70: return 10
+else: return 15
+
+def wind_score(wind_mph):
+    if wind_mph < 2: return 6
+elif wind_mph <= 8: return 10
+elif wind_mph <= 15: return 6
+else: return 3
+
+def dew_score(dewpoint_f, temp_f):
+    spread = temp_f - dewpoint_f
+    if spread <= 2: return 5
+elif spread <= 5: return 3
+else: return 1
+
+def rain_penalty(rain_inches):
+    if rain_inches == 0: return 0
+elif rain_inches < 0.10: return 5
+elif rain_inches < 0.25: return 12
+else: return 20
+
+def growth_stage_multiplier(dap, fruit_set):
+    if not fruit_set or dap < 20: return 0.65
+elif dap < 35: return: 0.9
+else: return 1.1
+
+def calculate_pm_details(day, multiplier, longitude):
+    base_score = (
+        temp_score(day["mean_temp"]) +
+        rh_score(day["avg_humidity"]) +
+        cloud_score(day["avg_cloud_cover"]) +
+        wind_score(day["max_wind"]) +
+        dew_score(day["dewpoint"], day["mean_temp"]) -
+        rain_penalty(day["rain_total"])
+    )
+
+is_east_end = longitude > 72.7
+wind_dir = day.get("avg_wind_direction", 270)
+is_west_wind = 200 <= wind_dir <= 310
+is_east_wind = 45 <= wind_dir <= 135
+
+wind_adjustment = 0
+wind_note = ""
+
+if is_east_end:
+    if is_west_wind:
+        wind_adjustment = 15
+        wind_note = "Westerly Winds: Elevated spore drift from western patches possible."
+    elif is_east_wind:
+        wind_adjustment = -10
+        wind_note = "Eastrly Winds: Clean marine air, reduction in spore risk possible."
+    else: if is_east_wind:
+        wind_adjustment = 10
+        wind_note = "Easterly Wind: Spores migrating westward from agricultural hubs possible."
+# 2 East winds??
+# North or South winds?
+if final_score < 25:
+    category = "Low"
+    status_desc = "Powdery Mildew pressure is minimal, but not zero. Conditions unfavorable for outbreak."
+    action_guidance = "Normal scouting; regular preventative program is sufficient."
+    box_style = st.success
+elif final_score < 50:
+    category = "Moderate"
+    status_desc = "Midlew conditons rising slightly. Conditions neutral for outbreak."
+    action_guidance = "Maintain protective coverage. Insprect shaded inner vine structures."
+    box_style = st.info
+elif final_score <  75:
+    category = "High"
+    status_desc = "Powdery Mildew pressure is high, favorable conditons for spore growth. Spores may germinate quickly."
+    action_guidance = "High risk. Ensure fungicide coverage is active and clean."
+    box_style = st.warning
+else:
+    category = "Very High"
+    status_desc = "Powdery Mildew pressure is very high. Ideal conditions for spore germination and spore transfers between leaves and patches."
+    action_guidance = "Check patch immediately for spots or signs of powdery mildew."
+    box_style = st.error
+
+return {
+    "score": round(final_score, 1),
+    "category": category,
+    "desc": status_desc,
+    "action": action_guidance,
+    "wind_note": wind_note,
+    "box_style": box_style
+}
+
+#fetch 7 days of forecast to fill 1 main box + 6 sidebar layout.
+@st.cache_data(ttl=3600)
+    def get_forecast_pm(lat, lon):
+        url = "https://api.open-meteo.com/v1/forecast"
+        params = {
+            "latitude": lat, "longitude": lon,
+            "hourly": "temperature_2m,relative_humidity_2m,dewpoint_2m,precipitation_probability,precipitation,wind_speed_10m,cloud_cover,wind_direction_10m",
+            "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,precipitation_sum",
+            "temperature_unit": "fahrenheit", "wind_speed_unit": "mph", "precipitation_unit": "inch", "timezone": "auto", "forecast_days": 7
+        }
+        return requests.get(url, params=params, timeout=10).json()
+
+    def summarize_hourly_pm(hourly):
+        grouped = defaultdict(lambda: {"humidity": [], "cloud_cover": [], "precip_prob": [], "temperature": [], "dewpoint": [], "wind_direction": []})
+        for t, h, c, p, temp_f, dew_f, wind_d in zip(
+            hourly["time"], hourly["relative_humidity_2m"], hourly["cloud_cover"], 
+            hourly["precipitation_probability"], hourly["temperature_2m"], hourly["dewpoint_2m"], hourly["wind_direction_10m"]
+        ):
+            day = t.split("T")[0]
+            grouped[day]["humidity"].append(h)
+            grouped[day]["cloud_cover"].append(c)
+            grouped[day]["precip_prob"].append(p)
+            grouped[day]["temperature"].append(temp_f)
+            grouped[day]["dewpoint"].append(dew_f)
+            grouped[day]["wind_direction"].append(wind_d)
+        
+        summary = {}
+        for day, values in grouped.items():
+            summary[day] = {
+                "avg_humidity": round(sum(values["humidity"]) / len(values["humidity"]), 1),
+                "avg_cloud_cover": round(sum(values["cloud_cover"]) / len(values["cloud_cover"]), 1),
+                "max_precip_prob": max(values["precip_prob"]),
+                "mean_temp": round(sum(values["temperature"]) / len(values["temperature"]), 1),
+                "dewpoint": round(sum(values["dewpoint"]) / len(values["dewpoint"]), 1),
+                "avg_wind_direction": round(sum(values["wind_direction"]) / len(values["wind_direction"]), 1),
+            }
+        return summary
+
+    if zip_code:
+        location = geocode_zip(zip_code)
+        if location:
+            raw_forecast = get_forecast_pm(location["latitude"], location["longitude"])
+            hourly_summary = summarize_hourly_pm(raw_forecast["hourly"])
+            daily = raw_forecast["daily"]
+            multiplier = growth_stage_multiplier(dap_pm, fruit_set)
+
+            # Process days
+            processed_days = []
+            for i in range(len(daily["time"])):
+                day_string = daily["time"][i]
+                extra = hourly_summary.get(day_string, {})
+                day_data = {
+                    "date": day_string, "high_temp": daily["temperature_2m_max"][i], "low_temp": daily["temperature_2m_min"][i],
+                    "mean_temp": extra.get("mean_temp"), "rain_total": daily["precipitation_sum"][i], "rain_chance": daily["precipitation_probability_max"][i],
+                    "max_wind": daily["wind_speed_10m_max"][i], "avg_humidity": extra.get("avg_humidity"), "avg_cloud_cover": extra.get("avg_cloud_cover"), "dewpoint": extra.get("dewpoint"),
+                    "avg_wind_direction": extra.get("avg_wind_direction"),
+                }
+                pm_details = calculate_pm_details(day_data, multiplier, location["longitude"])
+                processed_days.append((day_data, pm_details))
+
+            # Split UI into a Main Left Box and 6 Right Sidebar blocks
+            col_main, col_list = st.columns([3, 2])
+
+            with col_main:
+                # Get Day 0 (Today) for the big focus window
+                today_data, today_pm = processed_days[0]
+                dt = datetime.strptime(today_data["date"], "%Y-%m-%d")
+                readable_date = dt.strftime("%A, %b %d")
+
+                st.subheader(f"📅 Today's Risk Profile ({readable_date})")
+                
+                # Render the stylized status block
+                today_pm["box_style"](
+                    f"### **{today_pm['category']} Risk** — Index Score: `{today_pm['score']}/100`  \n"
+                    f"**Guidance:** {today_pm['action']}"
+                )
+
+                # Summary metrics card list below
+                st.markdown("#### 🔬 Atmospheric Disease Metrics")
+                col_m1, col_m2 = st.columns(2)
+                with col_m1:
+                    st.metric(label="Average Humidity", value=f"{today_data['avg_humidity']}%")
+                    st.metric(label="Mean Temperature", value=f"{today_data['mean_temp']}°F")
+                    st.metric(label="Avg Wind Direction", value=f"{int(today_data['avg_wind_direction'])}°")
+                with col_m2:
+                    st.metric(label="Dew Point Spread", value=f"{today_data['dewpoint']}°F")
+                    st.metric(label="Cloud Cover Coverage", value=f"{today_data['avg_cloud_cover']}%")
+                    st.write(f"ℹ️ **Transmission Factor:** {today_pm['wind_note'] or 'No active wind adjustments.'}")
+
+            with col_list:
+                st.subheader("🔮 6-Day Outlook")
+                # Loop through days 1 to 6
+                for day_data, pm_details in processed_days[1:]:
+                    dt_f = datetime.strptime(day_data["date"], "%Y-%m-%d")
+                    day_lbl = dt_f.strftime("%a, %b %d")
+                    
+                    # Small, clean container cards for each upcoming day
+                    with st.container(border=True):
+                        st.markdown(f"**{day_lbl}**")
+                        # Emphasize color inline
+                        if pm_details["category"] == "Low":
+                            lbl_color = "green"
+                        elif pm_details["category"] == "Moderate":
+                            lbl_color = "orange"
+                        else:
+                            lbl_color = "red"
+                            
+                        st.markdown(
+                            f"Risk: :**{lbl_color}**[{pm_details['category']}] | Score: `{pm_details['score']}`"
+                        )
+                        st.caption(f"Temp: {day_data['mean_temp']}°F | Humid: {day_data['avg_humidity']}%")
+
         else:
             st.error("Invalid ZIP code selection.")
