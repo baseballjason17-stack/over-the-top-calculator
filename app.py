@@ -954,7 +954,7 @@ elif page == "Powdery Mildew Risk Center":
     dap_pm = st.sidebar.number_input("Current DAP:", min_value=0, value=" ", key="pm_dap")
     fruit_set = st.sidebare.checkbox("Fruit is Set", value=True, key="pm_fruit_set")
 
-    def temp_score(temp_f):
+def temp_score(temp_f):
         if temp_f < 50: return 0
 elif temp_f < 60: return 10
 elif temp_f <  68: return 20
