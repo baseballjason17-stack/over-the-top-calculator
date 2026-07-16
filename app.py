@@ -1197,18 +1197,3 @@ elif page == "Powdery Mildew Risk Center":
 
         else:
             st.error("Invalid ZIP code selection.")
-
-# ==============================================================================
-# GLOBAL SIDEBAR FOOTER (PINNED TO BOTTOM)
-# ==============================================================================
-st.sidebar.markdown("---")
-st.sidebar.markdown(
-    """
-    <div style="font-size: 0.75rem; color: #888888; line-height: 1.2; text-align: justify;">
-        <strong>⚠️ Disclaimer:</strong><br>
-        This dashboard provides agricultural estimations and environmental analysis for informational purposes only. 
-        Patch management, watering, and chemical application decisions are made at the sole discretion and risk of the grower.
-    </div>
-    """,
-    unsafe_allow_html=True
-)
