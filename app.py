@@ -994,7 +994,7 @@ def rain_penalty(rain_inches):
 
 def growth_stage_multiplier(dap, fruit_set):
     if not fruit_set or dap < 20: return 0.65
-    elif dap < 35: return: 0.9
+    elif dap < 35: return 0.9
     else: return 1.1
 
 def calculate_pm_details(day, multiplier, longitude):
