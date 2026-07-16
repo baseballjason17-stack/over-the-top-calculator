@@ -233,7 +233,7 @@ if page == "🎃 Weight Calculator (OTT)":
 # ==============================================================================
 elif page == "🌤️ Weather & Risk Dashboard":
     st.title("🌤️ Pumpkin Patch Weather & Risk Dashboard")
-    st.write("Analyze growth environments and predict Powdery Mildew risks using live weather forecasting.")
+    st.write("Analyze growth environments and predict Powdery Mildew risks using live weather forecasting and geographic wind drift audits.")
 
     st.sidebar.markdown("---")
     st.sidebar.subheader("Dashboard Inputs")
@@ -284,7 +284,8 @@ elif page == "🌤️ Weather & Risk Dashboard":
         elif rain_inches < 0.25: return 12
         else: return 20
 
-    def powdery_mildew_risk(day, multiplier):
+    def powdery_mildew_risk(day, multiplier, longitude):
+        # 1. Base Score from microclimate factors
         base_score = (
             temp_score(day["mean_temp"]) +
             rh_score(day["avg_humidity"]) +
@@ -293,7 +294,31 @@ elif page == "🌤️ Weather & Risk Dashboard":
             dew_score(day["dewpoint"], day["mean_temp"]) -
             rain_penalty(day["rain_total"])
         )
-        base_score = max(0, min(base_score, 100))
+
+        # 2. Long Island Geographical Wind Transmission Audit
+        is_east_end = longitude > -72.7  # East of Riverhead / Shirley area
+        wind_dir = day.get("avg_wind_direction", 270)
+        
+        is_west_wind = 200 <= wind_dir <= 310
+        is_east_wind = 45 <= wind_dir <= 135
+
+        wind_adjustment = 0
+        wind_note = ""
+
+        if is_east_end:
+            if is_west_wind:
+                wind_adjustment = 15
+                wind_note = "💨 West Wind: Elevated spore drift risk from up-island patches."
+            elif is_east_wind:
+                wind_adjustment = -10
+                wind_note = "🌊 East Wind: Marine air decreases incoming terrestrial spore load."
+        else:
+            if is_east_wind:
+                wind_adjustment = 10
+                wind_note = "💨 East Wind: Inland drift risks carrying spores westward."
+
+        # Apply geographical adjustments
+        base_score = max(0, min(base_score + wind_adjustment, 100))
         final_score = base_score * multiplier
         final_score = max(0, min(final_score, 100))
 
@@ -301,7 +326,12 @@ elif page == "🌤️ Weather & Risk Dashboard":
         elif final_score < 50: category = "Moderate"
         elif final_score < 75: category = "High"
         else: category = "Very High"
-        return {"score": round(final_score, 1), "category": category}
+        
+        return {
+            "score": round(final_score, 1), 
+            "category": category, 
+            "wind_note": wind_note
+        }
 
     def score_day(day_data):
         score = 100
@@ -341,21 +371,25 @@ elif page == "🌤️ Weather & Risk Dashboard":
         url = "https://api.open-meteo.com/v1/forecast"
         params = {
             "latitude": lat, "longitude": lon,
-            "hourly": "temperature_2m,relative_humidity_2m,dewpoint_2m,precipitation_probability,precipitation,wind_speed_10m,cloud_cover",
+            "hourly": "temperature_2m,relative_humidity_2m,dewpoint_2m,precipitation_probability,precipitation,wind_speed_10m,cloud_cover,wind_direction_10m",
             "daily": "temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,precipitation_sum",
             "temperature_unit": "fahrenheit", "wind_speed_unit": "mph", "precipitation_unit": "inch", "timezone": "auto", "forecast_days": 7
         }
         return requests.get(url, params=params, timeout=10).json()
 
     def summarize_hourly_by_day(hourly):
-        grouped = defaultdict(lambda: {"humidity": [], "cloud_cover": [], "precip_prob": [], "temperature": [], "dewpoint": []})
-        for t, h, c, p, temp_f, dew_f in zip(hourly["time"], hourly["relative_humidity_2m"], hourly["cloud_cover"], hourly["precipitation_probability"], hourly["temperature_2m"], hourly["dewpoint_2m"]):
+        grouped = defaultdict(lambda: {"humidity": [], "cloud_cover": [], "precip_prob": [], "temperature": [], "dewpoint": [], "wind_direction": []})
+        for t, h, c, p, temp_f, dew_f, wind_d in zip(
+            hourly["time"], hourly["relative_humidity_2m"], hourly["cloud_cover"], 
+            hourly["precipitation_probability"], hourly["temperature_2m"], hourly["dewpoint_2m"], hourly["wind_direction_10m"]
+        ):
             day = t.split("T")[0]
             grouped[day]["humidity"].append(h)
             grouped[day]["cloud_cover"].append(c)
             grouped[day]["precip_prob"].append(p)
             grouped[day]["temperature"].append(temp_f)
             grouped[day]["dewpoint"].append(dew_f)
+            grouped[day]["wind_direction"].append(wind_d)
         
         summary = {}
         for day, values in grouped.items():
@@ -365,11 +399,12 @@ elif page == "🌤️ Weather & Risk Dashboard":
                 "max_precip_prob": max(values["precip_prob"]),
                 "mean_temp": round(sum(values["temperature"]) / len(values["temperature"]), 1),
                 "dewpoint": round(sum(values["dewpoint"]) / len(values["dewpoint"]), 1),
+                "avg_wind_direction": round(sum(values["wind_direction"]) / len(values["wind_direction"]), 1),
             }
         return summary
 
     if zip_code:
-        location = geocode_zip(zip_code) # Works perfectly here!
+        location = geocode_zip(zip_code)
         if location:
             st.success(f"📍 Showing patch forecast for: **{location['name']}, {location['state']}**")
             raw_forecast = get_forecast(location["latitude"], location["longitude"])
@@ -387,11 +422,14 @@ elif page == "🌤️ Weather & Risk Dashboard":
                     "date": day_string, "high_temp": daily["temperature_2m_max"][i], "low_temp": daily["temperature_2m_min"][i],
                     "mean_temp": extra.get("mean_temp"), "rain_total": daily["precipitation_sum"][i], "rain_chance": daily["precipitation_probability_max"][i],
                     "max_wind": daily["wind_speed_10m_max"][i], "avg_humidity": extra.get("avg_humidity"), "avg_cloud_cover": extra.get("avg_cloud_cover"), "dewpoint": extra.get("dewpoint"),
+                    "avg_wind_direction": extra.get("avg_wind_direction"),
                 }
                 dt = datetime.strptime(day_string, "%Y-%m-%d")
                 readable_day = dt.strftime("%A, %b %d")
                 growth_score, growth_label, growth_reasons = score_day(day_data)
-                pm_result = powdery_mildew_risk(day_data, multiplier)
+                
+                # Dynamic Spore risk calculation
+                pm_result = powdery_mildew_risk(day_data, multiplier, location["longitude"])
                 color_map = {"Low": "🟢 Low Risk", "Moderate": "🟡 Moderate Risk", "High": "🟠 High Risk", "Very High": "🔴 Very High Risk"}
                 pm_badge = color_map.get(pm_result['category'], "💡 Unknown")
 
@@ -407,17 +445,22 @@ elif page == "🌤️ Weather & Risk Dashboard":
                         st.write(f"• Rain: {day_data['rain_total']} in ({day_data['rain_chance']}% chance)")
                         st.write(f"• Humidity: {day_data['avg_humidity']}%")
                         st.write(f"• Wind Max: {day_data['max_wind']} mph")
+                        st.write(f"• Wind Direction: {int(day_data['avg_wind_direction'])}°")
                     with col_right:
                         st.markdown("**🔬 Disease Metrics**")
                         st.write(f"• Dew Point: {day_data['dewpoint']}°F")
                         st.write(f"• Cloud Cover: {day_data['avg_cloud_cover']}%")
                         st.write(f"• Mildew Index Score: `{pm_result['score']}/100`")
-                    if growth_reasons:
+                    
+                    # Display special downwind transmission alerts if applicable
+                    if pm_result["wind_note"] or growth_reasons:
                         st.markdown("**⚠️ Notes for the Day:**")
-                        for reason in growth_reasons: st.info(reason)
+                        if pm_result["wind_note"]:
+                            st.info(pm_result["wind_note"])
+                        for reason in growth_reasons: 
+                            st.info(reason)
         else:
             st.error("Invalid ZIP code or location not found. Please verify input.")
-
 
 # ==============================================================================
         # 💨 WILDFIRE SMOKE & AIR QUALITY MONITOR
