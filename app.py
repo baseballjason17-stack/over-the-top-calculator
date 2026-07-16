@@ -66,7 +66,7 @@ st.sidebar.markdown(
     <div style="font-size: 0.75rem; color: #888888; line-height: 1.2; text-align: justify;">
         <strong> DISCLAIMER:</strong><br>
         This dashboard is designed to provide agricultural estimations and environmental analysis for informational purposes only.
-        Patch maanagement, watering, and chemical application descisions are made at the sole discretion and risk of the grower.
+        Patch management, watering, and chemical application descisions are made at the sole discretion and risk of the grower.
     </div>
     """,
     unsafe_allow_html=True
@@ -85,14 +85,14 @@ if page == "🏠 Home & Patch Notes":
     st.markdown("### 📰 Patch Notes & Feature Updates")
     
     # We use st.expander so older updates don't clutter the screen, but are still accessible!
-    with st.expander("🚀 Version 1.2 Beta Update — July 2026 (New Features!)", expanded=True):
+    with st.expander("🚀 Version 1.2 Alpha Update — July 2026 (New Features!)", expanded=True):
         st.markdown("""
         * **🌱 New Tool Added:** The *Cell Division Window Optimizer* is now live! Monitor the critical 10-day post-pollination cellular growth phase.
         * **🐝 Pollination Upgrades:** The Pollination Calculator now automatically pulls live weather data at your exact pollination hour to audit temperature, wind, and humidity.
         * **💨 Wind Metrics:** The 16-Day Weather Outlook now tracks both sustained average wind speeds and maximum gusts.
         """)
         
-    with st.expander("🛠️ Version 1.1 Beta Update — March 2026"):
+    with st.expander("🛠️ Version 1.1 Alpha Update — March 2026"):
         st.markdown("""
         * **🌤️ Weather Engine Upgrade:** Switched to a responsive 3-column layout for daily risk cards.
         * **⚖️ Legal Safety Net:** Added permanent, muted agricultural disclaimers to the sidebar.
