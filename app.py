@@ -83,7 +83,7 @@ if page == "🏠 Home & Patch Notes":
     
     # 📰 Section 1: Patch Notes / Blog (Updates)
     st.markdown("### 📰 Patch Notes & Feature Updates")
- '''   
+'''   
     # We use st.expander so older updates don't clutter the screen, but are still accessible!
     with st.expander("🚀 Version 1.2 Alpha Update — July 2026 (New Features!)", expanded=True):
         st.markdown("""
