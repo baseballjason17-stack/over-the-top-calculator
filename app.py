@@ -50,9 +50,9 @@ page = st.sidebar.radio("Go to tool:", [
     "🏠 Home & Patch Notes",
     "🎃 Weight Calculator (OTT)", 
     "🌤️ Weather & Growth Dashboard",
+    "🔬 Powdery Mildew Risk Center",
     "🐝 Pollination Calculator",
-    "🌱 Cell Division Optimizer",
-    "Powdery Mildew Risk Center"
+    "🌱 Cell Division Optimizer"
 ])
 
 
@@ -900,7 +900,7 @@ elif page == "🌱 Cell Division Optimizer":
 # ==============================================================================
 # TOOL: POWDERY MILDEW RISK CENTER
 # ==============================================================================
-elif page == "Powdery Mildew Risk Center":
+elif page == "🔬 Powdery Mildew Risk Center":
     st.title("Powdery Mildew Risk Center")
     st.write("Track geographical spore drift risks, microclimatic humidity, and weather conditions favoring fungal outbreak.")
 
