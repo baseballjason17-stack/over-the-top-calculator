@@ -24,6 +24,23 @@ def geocode_zip(zip_str):
     r = results[0]
     return {"name": r.get("name", "Unknown"), "state": r.get("admin1", ""), "latitude": r["latitude"], "longitude": r["longitude"]}
 
+def get_air_quality_data(lat, lon):
+    """Fetches a 5-day hourly Air Quality Index (US AQI) and PM2.5 forecast."""
+    url = "https://air-quality-api.open-meteo.com/v1/air-quality"
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "hourly": "us_aqi,pm2_5",
+        "timezone": "auto"
+    }
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        if response.status_code === 200:
+            return response.json()
+    except Exception:
+        pass
+    return None
+
 
 # ==============================================================================
 # SIDEBAR NAVIGATION
@@ -401,6 +418,64 @@ elif page == "🌤️ Weather & Risk Dashboard":
         else:
             st.error("Invalid ZIP code or location not found. Please verify input.")
 
+
+# ==============================================================================
+        # 💨 WILDFIRE SMOKE & AIR QUALITY MONITOR
+        # ==============================================================================
+        st.markdown("### 💨 Live Smoke & Air Quality Monitor")
+        
+        aqi_data = get_air_quality_data(location["latitude"], location["longitude"])
+        
+        if aqi_data and "hourly" in aqi_data:
+            hourly_aqi = aqi_data["hourly"]["us_aqi"]
+            hourly_pm25 = aqi_data["hourly"]["pm2_5"]
+            times = aqi_data["hourly"]["time"]
+            
+            # Find current hourly indices
+            now_str = datetime.now().strftime("%Y-%m-%dT%H:00")
+            # Fallback to index 0 if exact hour match fails
+            current_idx = 0
+            for idx, t in enumerate(times):
+                if t.startswith(now_str):
+                    current_idx = idx
+                    break
+                    
+            current_aqi = hourly_aqi[current_idx]
+            current_pm = hourly_pm25[current_idx]
+            
+            # Determine Hazard Class & Guidance
+            if current_aqi <= 50:
+                aqi_status = "🟢 Good Air Quality"
+                guidance = "Excellent patch working conditions. Full solar potential."
+                aqi_box = st.success
+            elif current_aqi <= 100:
+                aqi_status = "🟡 Moderate Haze"
+                guidance = "Slight reduction in solar radiation potential. Normal patch care."
+                aqi_box = st.info
+            elif current_aqi <= 150:
+                aqi_status = "🟠 Unhealthy for Sensitive Groups (Hazy)"
+                guidance = "Visible smoke aloft likely. Keep strenuous patch work minimal if sensitive."
+                aqi_box = st.warning
+            else:
+                aqi_status = "🔴 Unhealthy / Smoky Skies"
+                guidance = "Heavy haze. Photosynthesis is restricted. Avoid working hard in the patch today."
+                aqi_box = st.error
+
+            # Layout metrics
+            col_aqi1, col_aqi2 = st.columns([1, 2])
+            with col_aqi1:
+                st.metric(label="Current Air Quality (AQI)", value=f"{int(current_aqi)} US", delta=f"{current_pm:.1f} µg/m³ PM2.5", delta_color="inverse")
+            with col_aqi2:
+                aqi_box(f"**Status:** {aqi_status}  \n**Patch Impact Guidance:** {guidance}")
+                
+            # Quick look-ahead for the next 48 hours (Detect oncoming smoke spikes!)
+            upcoming_48_aqi = hourly_aqi[current_idx:current_idx+48]
+            max_future_aqi = max(upcoming_48_aqi) if upcoming_48_aqi else current_aqi
+            
+            if max_future_aqi > current_aqi and max_future_aqi > 100:
+                st.warning(f"⚠️ **Heads Up:** Air quality is forecast to deteriorate over the next 48 hours, peaking near a smoky **{int(max_future_aqi)} AQI**. Prepare for hazy solar conditions.")
+        else:
+            st.info("ℹ️ Air Quality data is temporarily unavailable for this region.")
 
 # ==============================================================================
 # TOOL 3: 16-DAY WEATHER OUTLOOK
