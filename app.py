@@ -199,9 +199,9 @@ if page == "🎃 Weight Calculator (OTT)":
     st.write("Enter your measurements below to calculate your pumpkin's estimated weight.")
 
     dap = st.number_input("Enter DAP (Days After Pollination):", min_value=1, value=30)
-    side_to_side = st.number_input("Enter Side-to-Side measurement (In Inches):", min_value=0.0, value=100.0)
-    end_to_end = st.number_input("Enter End-to-End measurement (In Inches):", min_value=0.0, value=100.0)
-    circumference = st.number_input("Enter Circumference (In Inches):", min_value=0.0, value=150.0)
+    side_to_side = st.number_input("Enter Side-to-Side measurement (In Inches):", min_value=0.0, value=0.0)
+    end_to_end = st.number_input("Enter End-to-End measurement (In Inches):", min_value=0.0, value=" ")
+    circumference = st.number_input("Enter Circumference (In Inches):", min_value=0.0, value=1.0)
 
     ott = side_to_side + end_to_end + circumference
 
