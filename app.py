@@ -406,12 +406,10 @@ elif page == "🌤️ Weather & Growth Dashboard":
                 day_string = daily["time"][i]
                 extra = hourly_summary.get(day_string, {})
                 
-        # Fetch daily average PM2.5, filtering out any None values
-        raw_pms_list = daily_pm25.get(day_string, [0.0])
-        pms_list = [val for val in raw_pms_list if val is not None]
-
-        # Calculate the average safely
-        avg_pm25 = sum(pms_list) / len(pms_list) if pms_list else 0.0
+                # Safe Extraction: Fetch raw PM2.5 lists and clear out any None values
+                raw_pms_list = daily_pm25.get(day_string, [0.0])
+                pms_list = [val for val in raw_pms_list if val is not None]
+                avg_pm25 = sum(pms_list) / len(pms_list) if pms_list else 0.0
 
                 day_data = {
                     "date": day_string,
@@ -560,7 +558,6 @@ elif page == "🌤️ Weather & Growth Dashboard":
 
         else:
             st.error("Invalid ZIP code or location not found. Please verify input.")
-
 
 # ==============================================================================
 # TOOL 4: POLLINATION CALCULATOR & WEATHER AUDITOR
