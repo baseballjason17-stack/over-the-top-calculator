@@ -191,13 +191,6 @@ if page == "🏠 Home & Patch Notes":
     else:
         st.write("👈 Select a tool from the dropdown above to read its manual!")
 
-st.markdown("---")
-st.caption(
-    "**Notice:** Calculations, weather risk indicies, and growth timelines provided by this application "
-    "are estimates based on environmental models and standard mathematical formulas. All patch management "
-    "decisions, applications, and treatments are carried out entirely at the grower's own risk. This copilot "
-    "is an informational tool, not an automated advisor. "
-)
 
 # ==============================================================================
 # TOOL 1: OTT WEIGHT CALCULATOR
@@ -945,7 +938,7 @@ elif page == "🌱 Cell Division Optimizer":
 # ==============================================================================
 elif page == "Powdery Mildew Risk Center":
     st.title("Powdery Mildew Risk Center")
-    st.write("Track microclimatic humidity and weather conditions favoring fungal outbreaks.")
+    st.write("Track geographical spore drift risks, microclimatic humidity, and weather conditions favoring fungal outbreak.")
 
     st.sidebar.markdown("---")
     st.sidebar.subheader("Mildew Parameters")
@@ -997,6 +990,13 @@ elif page == "Powdery Mildew Risk Center":
         elif dap < 35: return 0.9
         else: return 1.1
 
+    def degrees_to_cardinal(deg):
+        if deg is None: return "N/A"
+        deg = deg % 360
+        val = int((deg / 22.5) + 0.5)
+        arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+        return arr[val % 16]
+
     def calculate_pm_details(day, multiplier, longitude):
         base_score = (
             temp_score(day["mean_temp"]) +
@@ -1007,25 +1007,45 @@ elif page == "Powdery Mildew Risk Center":
             rain_penalty(day["rain_total"])
         )
 
-        is_east_end = longitude > -72.7
         wind_dir = day.get("avg_wind_direction", 270)
-        is_west_wind = 200 <= wind_dir <= 310
-        is_east_wind = 45 <= wind_dir <= 135
+        cardinal = degrees_to_cardinal(wind_dir)
 
         wind_adjustment = 0
         wind_note = ""
 
-        if is_east_end:
-            if is_west_wind:
+        # Long Island Region Segmentation
+        # 1. East End
+        if longitude > -72.7:
+            region_name = "East End"
+            if cardinal in ["W", "WSW", "WNW", "SW", "NW"]:
                 wind_adjustment = 15
-                wind_note = "💨 West Wind: Elevated spore drift risk from western patches."
-            elif is_east_wind:
+                wind_note = f"💨 West Wind ({cardinal}): Elevated spore drift from up-island patches."
+            elif cardinal in ["E", "ESE", "SE", "SSE"]:
                 wind_adjustment = -10
-                wind_note = "🌊 East Wind: Clean marine air reduces spore risk."
-        else:
-            if is_east_wind:
+                wind_note = f"🌊 East Wind ({cardinal}): Maritime buffer clean air reduces spore risk."
+        
+        # 2. Central Long Island (Middle Island, Patchogue, Shirley)
+        elif -73.1 <= longitude <= -72.7:
+            region_name = "Central LI"
+            if cardinal in ["W", "WSW", "WNW"]:
                 wind_adjustment = 10
-                wind_note = "💨 East Wind: Spores migrating westward from agricultural hubs."
+                wind_note = f"💨 West Wind ({cardinal}): Spores moving from western suburbs."
+            elif cardinal in ["E", "ENE", "NE"]:
+                wind_adjustment = 10
+                wind_note = f"💨 East Wind ({cardinal}): Spores drifting westward from agricultural hubs."
+            elif cardinal in ["S", "SSE", "SSW"]:
+                wind_adjustment = -8
+                wind_note = f"🌊 South Wind ({cardinal}): Direct ocean breeze decreases spore risk."
+
+        # 3. Western Long Island (Nassau / West Suffolk boundary)
+        else:
+            region_name = "Western LI"
+            if cardinal in ["W", "NW", "NNW", "N"]:
+                wind_adjustment = 12
+                wind_note = f"💨 North/West Wind ({cardinal}): Spores blowing from mainland and inland nurseries."
+            elif cardinal in ["S", "SSE", "SW"]:
+                wind_adjustment = -10
+                wind_note = f"🌊 South Wind ({cardinal}): Bay/Ocean air cooling provides a protective buffer."
 
         base_score = max(0, min(base_score + wind_adjustment, 100))
         final_score = base_score * multiplier
@@ -1033,22 +1053,22 @@ elif page == "Powdery Mildew Risk Center":
 
         if final_score < 25:
             category = "Low"
-            status_desc = "Pressure is minimal. Conditions unfavorable for outbreak."
+            status_desc = f"Pressure in {region_name} is minimal. Conditions unfavorable."
             action_guidance = "Normal scouting; regular preventative program is sufficient."
             box_style = st.success
         elif final_score < 50:
             category = "Moderate"
-            status_desc = "Mildew conditions rising slightly. Monitor lower leaves."
+            status_desc = f"Mildew conditions in {region_name} rising slightly. Monitor lower canopy."
             action_guidance = "Maintain protective coverage. Inspect shaded inner vine structures."
             box_style = st.info
         elif final_score < 75:
             category = "High"
-            status_desc = "Favorable growth conditions. Spores will germinate quickly."
+            status_desc = f"Favorable growth conditions in {region_name}. Spores will germinate quickly."
             action_guidance = "High risk. Ensure fungicide coverage is active and clean."
             box_style = st.warning
         else:
             category = "Very High"
-            status_desc = "Perfect storm for outbreak. Spore pressure is maxed."
+            status_desc = f"Perfect storm for outbreak in {region_name}."
             action_guidance = "Critical alert. Spray accordingly/inspect patch immediately for spots."
             box_style = st.error
 
@@ -1058,7 +1078,8 @@ elif page == "Powdery Mildew Risk Center":
             "desc": status_desc,
             "action": action_guidance,
             "wind_note": wind_note,
-            "box_style": box_style
+            "box_style": box_style,
+            "region": region_name
         }
 
     # Fetch 7 days of forecast to fill the 1 Main + 6 Sidebar layout
@@ -1144,11 +1165,11 @@ elif page == "Powdery Mildew Risk Center":
                 with col_m1:
                     st.metric(label="Average Humidity", value=f"{today_data['avg_humidity']}%")
                     st.metric(label="Mean Temperature", value=f"{today_data['mean_temp']}°F")
-                    st.metric(label="Avg Wind Direction", value=f"{int(today_data['avg_wind_direction'])}°")
+                    st.metric(label="Wind Direction", value=f"{degrees_to_cardinal(today_data['avg_wind_direction'])} ({int(today_data['avg_wind_direction'])}°)")
                 with col_m2:
                     st.metric(label="Dew Point Spread", value=f"{today_data['dewpoint']}°F")
                     st.metric(label="Cloud Cover Coverage", value=f"{today_data['avg_cloud_cover']}%")
-                    st.write(f"ℹ️ **Transmission Factor:** {today_pm['wind_note'] or 'No active wind adjustments.'}")
+                    st.write(f"ℹ️ **Transmission Factor:** {today_pm['wind_note'] or 'No active regional adjustments.'}")
 
             with col_list:
                 st.subheader("🔮 6-Day Outlook")
@@ -1161,17 +1182,27 @@ elif page == "Powdery Mildew Risk Center":
                     with st.container(border=True):
                         st.markdown(f"**{day_lbl}**")
                         # Emphasize color inline
-                        if pm_details["category"] == "Low":
-                            lbl_color = "green"
-                        elif pm_details["category"] == "Moderate":
-                            lbl_color = "orange"
-                        else:
-                            lbl_color = "red"
-                            
-                        st.markdown(
-                            f"Risk: :**{lbl_color}**[{pm_details['category']}] | Score: `{pm_details['score']}`"
-                        )
-                        st.caption(f"Temp: {day_data['mean_temp']}°F | Humid: {day_data['avg_humidity']}%")
+                        # Emphasize color inline
+                            if pm_details["category"] == "Low":
+                                lbl_color = "green"
+                            elif pm_details["category"] == "Moderate":
+                                lbl_color = "orange"
+                            else:
+                                lbl_color = "red"
+    
+                # Corrected syntax: :color[text]
+                            st.markdown(
+                                f"Risk: :{lbl_color}[**{pm_details['category']}**] | Score: `{pm_details['score']}`"
+            )
 
         else:
             st.error("Invalid ZIP code selection.")
+
+
+st.markdown("---")
+st.caption(
+    "**Notice:** Calculations, weather risk indicies, and growth timelines provided by this application "
+    "are estimates based on environmental models and standard mathematical formulas. All patch management "
+    "decisions, applications, and treatments are carried out entirely at the grower's own risk. This copilot "
+    "is an informational tool, not an automated advisor. "
+)
